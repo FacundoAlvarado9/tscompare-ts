@@ -1,7 +1,7 @@
-import type { NDimensionalPoint } from'../types/TSComparator.types';
+import type { NDimensionalPoint } from '../types/TSComparator.types';
 import { AbstractDistanceStrategy } from './AbstractDistanceStrategy';
 
-export class ManhattanDistance extends AbstractDistanceStrategy {
+export class UnweightedEuclidean extends AbstractDistanceStrategy{
 
     constructor(){
         super();
@@ -9,11 +9,11 @@ export class ManhattanDistance extends AbstractDistanceStrategy {
 
     protected calculateDistance(point1: NDimensionalPoint, point2: NDimensionalPoint): number {
         const variable_count = point1.length;
-        let sum_diffs = 0;
+        let sum_squared_diffs = 0;
         for(let i=0; i<variable_count; i++){
-            sum_diffs += Math.abs(point1[i]-point2[i]);
+            const dif = point1[i] - point2[i];
+            sum_squared_diffs += Math.pow(dif, 2);
         }
-        return sum_diffs;
+        return Math.sqrt(sum_squared_diffs);
     }
-
 }
