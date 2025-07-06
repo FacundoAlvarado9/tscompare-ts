@@ -1,9 +1,9 @@
-import { EuclideanDistance, NDimensionalPoint } from "../../src";
+import { WeightedEuclidean } from "../../src";
 
 describe('Karl-Pearson', () => {
 
     const weights = [44.76, 56.5, 133.67];
-    const karlpearson = new EuclideanDistance(weights);
+    const karlpearson = new WeightedEuclidean(weights);
     
     test('Distance between identical points must be 0 (zero)', () => {
         expect(karlpearson.distance([-64.88,2.16,-76], [-64.88,2.16,-76])).toBeCloseTo(0);

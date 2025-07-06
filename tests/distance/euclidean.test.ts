@@ -1,8 +1,8 @@
-import { EuclideanDistance } from "../../src";
+import { UnweightedEuclidean } from "../../src";
 
-describe('Euclidean Distance Strategy', () => {
+describe('Unweighted Euclidean Distance Strategy', () => {
 
-  const euclid = new EuclideanDistance();
+  const euclid = new UnweightedEuclidean();
 
   describe("Valid inputs", () => {
     test("Distance is 0 for identical points", () => {
