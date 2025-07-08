@@ -1,6 +1,7 @@
 import { abs, floor, max, mean, min } from 'mathjs';
 import type { DistanceStrategy } from './strategies/IDistanceStrategy';
 import type { ComparisonResult, TimeSeries } from './types/TSComparator.types';
+import { TSValidator } from './validators/TSValidator';
 
 export interface ITSComparator {
     setStrategy(distanceStrategy : DistanceStrategy) : void;
@@ -19,11 +20,10 @@ export class TSComparator implements ITSComparator {
 
     public runComparison(reference : TimeSeries, target : TimeSeries) : ComparisonResult {
         if(this.distanceStrategy == null){
-            throw new Error("A distance strategy must be set before running a comparison");            
+            throw new Error("A distance strategy must be defined before comparing the time-series.");            
         }
-        if(reference.length == 0 || target.length == 0){
-            throw new Error("Time-Series cannot be empty");            
-        }
+
+        TSValidator.validate(reference, target);
 
         const accDistMatrix = this.computeAccumDistMatrix(reference, target);
         const minDistPath = this.findMinimalDistancePath(accDistMatrix);
@@ -38,31 +38,25 @@ export class TSComparator implements ITSComparator {
         }
     }
 
-    private initializeDistanceMatrix(l : number, n : number){
-        const m = new Array(l);
-        for(let i=0; i<l; i++){
-            m[i] = new Array(n).fill(0);
-        }
-        return m;
-    }
-
     private computeAccumDistMatrix(reference : TimeSeries, target : TimeSeries) : Array<Array<number>> {
-        const l = reference.length;
-        const n = target.length;
-        const accDistMatrix = this.initializeDistanceMatrix(l, n);
+        //Matrix initialization
+        const accDistMatrix = new Array(reference.length);
+        for(let i=0; i<reference.length; i++){
+            accDistMatrix[i] = new Array(target.length).fill(0);
+        }
 
         accDistMatrix[0][0] = this.distanceStrategy.distance(reference[0], target[0]);
         
-        for(let i=1; i<l; i++){
+        for(let i=1; i<reference.length; i++){
             accDistMatrix[i][0] = this.distanceStrategy.distance(reference[i], target[0]) + accDistMatrix[i-1][0];
         }
     
-        for(let i=1; i<n; i++){
+        for(let i=1; i<target.length; i++){
             accDistMatrix[0][i] = this.distanceStrategy.distance(reference[0], target[i]) + accDistMatrix[0][i-1];
         }
     
-        for(let i=1; i<l; i++){
-            for(let j=1; j<n; j++){
+        for(let i=1; i<reference.length; i++){
+            for(let j=1; j<target.length; j++){
                 accDistMatrix[i][j] = this.distanceStrategy.distance(reference[i], target[j]) + min(accDistMatrix[i-1][j-1], accDistMatrix[i-1][j], accDistMatrix[i][j-1]);
             }
         }
@@ -84,12 +78,12 @@ export class TSComparator implements ITSComparator {
                 i = i-1;
             } else {
                 let m = min(distMatrix[i-1][j], distMatrix[i][j-1], distMatrix[i-1][j-1]);
-                if (m == distMatrix[i][j-1]){
+                if (m == distMatrix[i-1][j-1]){
+                    i = i-1;
                     j = j-1;
                 } else if(m == distMatrix[i-1][j]){
                     i = i-1;
-                } else {
-                    i = i-1;
+                } else {                    
                     j = j-1;
                 }
             }
