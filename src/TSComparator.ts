@@ -1,7 +1,8 @@
 import { abs, floor, max, mean, min } from 'mathjs';
 import type { DistanceStrategy } from './strategies/IDistanceStrategy';
-import type { ComparisonResult, TimeSeries } from './types/TSComparator.types';
+import type { ComparisonResult, Pair, Path, TimeSeries } from './types/TSComparator.types';
 import { TSValidator } from './validators/TSValidator';
+import { Matrix } from './types/matrix/Matrix';
 
 export interface ITSComparator {
     setStrategy(distanceStrategy : DistanceStrategy) : void;
@@ -25,80 +26,95 @@ export class TSComparator implements ITSComparator {
 
         TSValidator.validate(reference, target);
 
-        const accDistMatrix = this.computeAccumDistMatrix(reference, target);
-        const minDistPath = this.findMinimalDistancePath(accDistMatrix);
-        const distance = this.computeDistance(reference, target, minDistPath);
-        const misalignment = this.computeMisalignment(reference, minDistPath);
-        const degreeOfMisalignment = this.computeDegreeOfMisalignment(misalignment);
+        const accDistMatrix = this.calculateDistanceMatrix(reference, target);
+        const minDistPath = this.calculateMinimalDistPath(accDistMatrix);
+        const warping = this.calculateWarping(reference, minDistPath);
+        const distance = this.calculateDistance(reference, target, warping);
+        const misalignment = this.calculateMisalignment(warping);
+        const degreeOfMisalignment = this.calculateMisalignmentDegree(misalignment);
 
-        return { 
+        return {
+            warping: warping,
             distance: distance,
             misalignment: misalignment,
             degree_of_misalignment: degreeOfMisalignment
         }
     }
 
-    private computeAccumDistMatrix(reference : TimeSeries, target : TimeSeries) : Array<Array<number>> {
-        //Matrix initialization
-        const accDistMatrix = new Array(reference.length);
-        for(let i=0; i<reference.length; i++){
-            accDistMatrix[i] = new Array(target.length).fill(0);
-        }
+    private calculateDistanceMatrix(reference : TimeSeries, target : TimeSeries) : Matrix<number> {
+        const accDistMatrix = new Matrix<number>(reference.length, target.length, 0);
 
-        accDistMatrix[0][0] = this.distanceStrategy.distance(reference[0], target[0]);
+        accDistMatrix.set(0,0, this.distanceStrategy.distance(reference[0], target[0]));
         
-        for(let i=1; i<reference.length; i++){
-            accDistMatrix[i][0] = this.distanceStrategy.distance(reference[i], target[0]) + accDistMatrix[i-1][0];
+        for(let i=1; i<accDistMatrix.getRows(); i++){
+            const distance = this.distanceStrategy.distance(reference[i], target[0])
+            accDistMatrix.set(i,0, (distance + accDistMatrix.get(i-1,0)));
         }
     
         for(let i=1; i<target.length; i++){
-            accDistMatrix[0][i] = this.distanceStrategy.distance(reference[0], target[i]) + accDistMatrix[0][i-1];
+            const distance = this.distanceStrategy.distance(reference[0], target[i])
+            accDistMatrix.set(0,i, (distance + accDistMatrix.get(0,i-1)));
         }
     
         for(let i=1; i<reference.length; i++){
             for(let j=1; j<target.length; j++){
-                accDistMatrix[i][j] = this.distanceStrategy.distance(reference[i], target[j]) + min(accDistMatrix[i-1][j-1], accDistMatrix[i-1][j], accDistMatrix[i][j-1]);
+                const min_neighbor : number = min(accDistMatrix.get(i-1,j-1), accDistMatrix.get(i-1,j), accDistMatrix.get(i,j-1));
+                accDistMatrix.set(i,j,this.distanceStrategy.distance(reference[i], target[j]) + min_neighbor);
             }
-        }
-    
+        }    
         return accDistMatrix;
     }
 
-    private findMinimalDistancePath(distMatrix : Array<Array<number>>) : Array<Array<number>>{ 
-        const path = [];
-        
-        let i = distMatrix.length - 1;
-        let j = distMatrix[0].length - 1;
+    public calculateMinimalDistPath(distMatrix : Matrix<number>) : Path {        
+        const path : Path = [];
+                
+        let i = distMatrix.getRows()-1;
+        let j = distMatrix.getColumns()-1;
 
         while(i>=0 && j>=0){
-            path.push([i,j]);
+            path.push({first: i, second: j} as Pair<number>);
             if(i == 0) {
                 j = j-1;
             } else if(j == 0) {
                 i = i-1;
             } else {
-                let m = min(distMatrix[i-1][j], distMatrix[i][j-1], distMatrix[i-1][j-1]);
-                if (m == distMatrix[i-1][j-1]){
+                let m = min(distMatrix.get(i-1,j), distMatrix.get(i,j-1), distMatrix.get(i-1,j-1))
+                if (m == distMatrix.get(i-1,j-1)){
                     i = i-1;
                     j = j-1;
-                } else if(m == distMatrix[i-1][j]){
+                } else if(m == distMatrix.get(i-1,j)){
                     i = i-1;
                 } else {                    
                     j = j-1;
                 }
             }
-        }
-
+        }    
         return path;
     }
 
-    private getBestMatch(index : number, minimalDistancePath : Array<Array<number>>){
-        const matchingPairs = minimalDistancePath.filter((pair) => (pair[0] == index));
-        const candidates = matchingPairs.map((innerArray) => innerArray[1]);
+    private getBestMatch(index : number, minimalDistancePath : Path) : number {
+        const matchingPairs = minimalDistancePath.filter((pair) => (pair.first == index));
+        const candidates = matchingPairs.map((pair) => pair.second);
         return floor(mean(candidates));
     }
 
-    private computeDegreeOfMisalignment(misalignment : Array<number>) : Array<number>{
+    private calculateWarping(reference : TimeSeries, minimalDistancePath : Path) : Array<number>{
+        const warping = Array<number>(reference.length);
+        for(let n=0; n<reference.length; n++){
+            warping[n] = this.getBestMatch(n, minimalDistancePath);
+        }
+        return warping;
+    }
+
+    private calculateMisalignment(warping : Array<number>) : Array<number> {
+        let misalignment = Array<number>(warping.length);
+        for(let n=0; n<warping.length; n++){
+            misalignment[n] = warping[n] - n;
+        }
+        return misalignment;
+    }
+
+    private calculateMisalignmentDegree(misalignment : Array<number>) : Array<number>{
         let dG = Array<number>(misalignment.length);        
         let h = Array<number>(misalignment.length);
         if(misalignment.length == 1){
@@ -124,19 +140,11 @@ export class TSComparator implements ITSComparator {
         return h;
     }
 
-    private computeMisalignment(reference : TimeSeries, minimalDistancePath : Array<Array<number>>){
-        let misalignment = Array<number>(reference.length);
-        for(let i=0; i<reference.length; i++){
-            misalignment[i] = (this.getBestMatch(i, minimalDistancePath) - i)
-        }
-        return misalignment;
-    }
-
-    private computeDistance(reference : TimeSeries, target : TimeSeries, minimalDistancePath : Array<Array<number>>){
+    private calculateDistance(reference : TimeSeries, target : TimeSeries, warping : Array<number>) : Array<number> {
         let dist = Array<number>(reference.length);
-        for(let i=0; i<reference.length; i++){
-            let bestMatch = this.getBestMatch(i, minimalDistancePath);
-            dist[i] = this.distanceStrategy.distance(reference[i], target[bestMatch])
+        for(let n=0; n<reference.length; n++){
+            const bestMatch = warping[n];
+            dist[n] = this.distanceStrategy.distance(reference[n], target[bestMatch])
         }
         return dist;
     }
