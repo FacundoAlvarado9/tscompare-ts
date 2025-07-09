@@ -12,7 +12,8 @@ describe("Time-Series Comparator tests", () => {
         const dimensionallyInconsistentTS : TimeSeries = [[1,-2,0], [25,54,4.5], [-8.2], [122,1]];
 
         test("Comparison is not possible for empty time-series", () =>{
-            expect(comparator.)
+            expect(comparator.runComparison(emptyTS, emptyTS)).toThrow();
+            expect(comparator.runComparison(emptyTS, validTS)).toThrow();
         });
     });
 });
