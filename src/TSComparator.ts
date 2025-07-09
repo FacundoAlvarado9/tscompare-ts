@@ -65,7 +65,7 @@ export class TSComparator implements ITSComparator {
         return accDistMatrix;
     }
 
-    public calculateMinimalDistPath(distMatrix : Matrix<number>) : Path {        
+    private calculateMinimalDistPath(distMatrix : Matrix<number>) : Path {        
         const path : Path = [];
                 
         let i = distMatrix.getRows()-1;
