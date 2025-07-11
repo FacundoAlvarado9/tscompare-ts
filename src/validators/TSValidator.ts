@@ -12,6 +12,9 @@ export class TSValidator {
 }
 
 function getConsistentDimensions(ts: TimeSeries) : number {
+    if(ts.length == 0){
+        throw new Error("Time-series must not be empty");
+    }
     let hasConsistentDimensions = true;
 
     const row_count = ts.length;

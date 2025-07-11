@@ -122,16 +122,17 @@ export class TSComparator implements ITSComparator {
             h[0] = 0;
         } else{
             for(let i=0; i<misalignment.length-1; i++){
-                dG[i] = misalignment[i+1] - misalignment[i]
+                dG[i] = misalignment[i+1] - misalignment[i];
             }
             dG[misalignment.length-1] = dG[misalignment.length-2];
             let max_dG = max(dG);
+            let min_dG = min(dG);
 
             for(let i=0; i<dG.length; i++){
                 if(dG[i] > 0){
                     h[i] = dG[i]/max_dG;
                 } else if(dG[i] < 0){
-                    h[i] = dG[i]/abs(max_dG);
+                    h[i] = dG[i]/abs(min_dG);
                 } else {
                     h[i] = 0;
                 }
