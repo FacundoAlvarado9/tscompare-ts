@@ -28,6 +28,7 @@ describe('Unweighted Euclidean Distance Strategy', () => {
 
     test('3D points', () => {
       expect(euclid.distance([53,5,34], [122,9,-9])).toBeCloseTo(81.4002);
+      expect(euclid.distance([-4.78, 10.19, -11.82], [0.14,6.25,-13.72])).toBeCloseTo(6.58);
     });
 
     test('4D points', () => {
