@@ -23,6 +23,51 @@ describe("Time-Series Comparator tests", () => {
 
     describe("Valid input 1 ", () => {
 
+        const reference =   [[9],[0],[1.1],[0.23],[6],[-10.9],[-3.2]];
+
+        const target = [[5.1], [-7.23], [2.5], [0.3], [0]];
+
+        
+        const expectedWarping = [0,1,2,3,3,4,4];
+        const expectedMisalignment = [0,0,0,0,-1,-1,-2];
+        const expectedDistance = [3.9,7.23,1.4,0.07,5.7,10.9,3.2];
+        const expectedDegreeOfMisalignment = [ 0,0,0,-1,0,-1,-1 ];
+        let result : ComparisonResult;
+        
+        beforeAll(() => {
+            result = comparator.runComparison(reference, target)
+        });
+
+        test("Check distance correctness", () => {
+            expect(result.distance.length).toEqual(expectedDistance.length);
+            result.distance.forEach((actualDistance, index) => {
+                expect(actualDistance).toBeCloseTo(expectedDistance[index]);
+            });
+        });
+
+        test("Check warping correctness", () => {
+            expect(result.warping).toEqual(expectedWarping);
+            expect(result.warping.length).toEqual(expectedWarping.length);
+        });
+
+        test("Check misalignment correctness", () => {
+            expect(result.misalignment).toEqual(expectedMisalignment);
+            expect(result.misalignment.length).toEqual(expectedMisalignment.length);
+        });
+
+        test("Check misalignment degree correctness", () => {
+            expect(result.degree_of_misalignment.length).toEqual(expectedDegreeOfMisalignment.length);
+            result.degree_of_misalignment.forEach((actualDegree, index) => {
+                expect(actualDegree).toBeLessThanOrEqual(1);
+                expect(actualDegree).toBeGreaterThanOrEqual(-1);
+                expect(actualDegree).toBeCloseTo(expectedDegreeOfMisalignment[index]);
+            });
+        });
+        
+    });
+
+    describe("Valid input 2 ", () => {
+
         const reference =   [[13.27, -6.14, 5.33], [-4.78, 10.19, -11.82], [1.76, 6.44, 8.28], 
                             [3.91, -13.93, -0.64], [-12.07, 5.7, -3.28], [7.66, -10.4, 2.01],
                             [0.49, -8.31, 12.96], [-6.55, 3.27, -9.91], [14.81, 1.33, -2.54],
