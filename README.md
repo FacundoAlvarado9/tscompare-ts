@@ -9,4 +9,8 @@ Since many distance measures can be used for running the comparison, a Strategy 
 ## Class Diagram
 A UML Class Diagram for the current state of development follows this explanation for ease of understanding
 
-![UML CLass Diagram](./img/TSComparator_ClassDiagram.jpeg)
+![UML CLass Diagram](./img/TSComparator-ClassDiagram.jpeg)
+
+And for the types
+
+![UML CLass Diagram - Types](./img/TSComparator-types.jpeg)
