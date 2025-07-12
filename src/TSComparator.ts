@@ -40,7 +40,12 @@ export class TSComparator implements ITSComparator {
             degree_of_misalignment: degreeOfMisalignment
         }
     }
-
+    /**
+     * Calculates the accumulated distance matrix for two time series.
+     * @param {TimeSeries} reference - the reference time-series
+     * @param {TimeSeries} target - the target time-series
+     * @returns the accumulated distance matrix
+     */
     private calculateDistanceMatrix(reference : TimeSeries, target : TimeSeries) : Matrix<number> {
         const accDistMatrix = new Matrix<number>(reference.length, target.length, 0);
 
@@ -65,6 +70,11 @@ export class TSComparator implements ITSComparator {
         return accDistMatrix;
     }
 
+    /**
+     * Calculates the minimal distance path between the time-series
+     * @param {Matrix} distMatrix - the accumulated-distance matrix
+     * @returns a list of pairs (i,j) that describes a warping between the sequences
+     */
     private calculateMinimalDistPath(distMatrix : Matrix<number>) : Path {        
         const path : Path = [];
                 
@@ -92,12 +102,24 @@ export class TSComparator implements ITSComparator {
         return path;
     }
 
+    /**
+     * Given a record in the reference time-series, defines a best-matching record in the target time-series
+     * @param index - index of the record in the reference time-series
+     * @param minimalDistancePath - minimal distance path between both time-series
+     * @returns the best matching record in the target-time series for the given record in the reference time-series
+     */
     private getBestMatch(index : number, minimalDistancePath : Path) : number {
         const matchingPairs = minimalDistancePath.filter((pair) => (pair.first == index));
         const candidates = matchingPairs.map((pair) => pair.second);
         return floor(mean(candidates));
     }
 
+    /**
+     * For a given reference time-series, calculates all the best matching records in the target time-series
+     * @param reference - reference time-series
+     * @param minimalDistancePath - minimal distance path between the reference time-series and a target time-series
+     * @returns an array containing all best-matching records for each record in the reference time-series
+     */
     private calculateWarping(reference : TimeSeries, minimalDistancePath : Path) : Array<number>{
         const warping = Array<number>(reference.length);
         for(let n=0; n<reference.length; n++){
@@ -106,6 +128,13 @@ export class TSComparator implements ITSComparator {
         return warping;
     }
 
+    /**
+     * For each record in the reference time-series, calculates the distance of its index
+     * to the index of the best-matching record in the target time-series
+     * @param warping - warping function for the reference time-series to the target time-series
+     * @returns an array containing the distance to the best-matching index in the target time-series for each record
+     * in the reference time-series
+     */
     private calculateMisalignment(warping : Array<number>) : Array<number> {
         let misalignment = Array<number>(warping.length);
         for(let n=0; n<warping.length; n++){
@@ -114,6 +143,13 @@ export class TSComparator implements ITSComparator {
         return misalignment;
     }
 
+    /**
+     * Defines the degree of misalignment, i.e. how early, delayed, or on-time a record in the reference time-series is,
+     * compared to the target time-series
+     * @param misalignment - array of distances between the index of each record reference time-series and
+     * the index of its best-match in the target time-series
+     * @returns an array containing the degree of misalignment of each record in the reference time-series
+     */
     private calculateMisalignmentDegree(misalignment : Array<number>) : Array<number>{
         let dG = Array<number>(misalignment.length);        
         let h = Array<number>(misalignment.length);
@@ -141,6 +177,13 @@ export class TSComparator implements ITSComparator {
         return h;
     }
 
+    /**
+     * Calculates the distance between each record in the reference-time series to its best-match in the target time-series
+     * @param reference - the reference time-series
+     * @param target - the target time-series
+     * @param warping - the warping function from the reference time-series to the target time-series
+     * @returns an array containing the distance between each record in the reference-time series to its best-match in the target time-series
+     */
     private calculateDistance(reference : TimeSeries, target : TimeSeries, warping : Array<number>) : Array<number> {
         let dist = Array<number>(reference.length);
         for(let n=0; n<reference.length; n++){
