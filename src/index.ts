@@ -3,4 +3,4 @@ export * from './TSComparator';
 export * from './strategies/IDistanceStrategy';
 export * from './strategies/UnweightedEuclidean';
 export * from './strategies/WeightedEuclidean';
-export * from './strategies/ManhattanDistance';
+export * from './strategies/Manhattan';

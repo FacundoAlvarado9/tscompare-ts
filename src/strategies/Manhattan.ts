@@ -1,7 +1,7 @@
 import type { NDimensionalPoint } from'../types/TSComparator.types';
 import { AbstractDistanceStrategy } from './AbstractDistanceStrategy';
 
-export class ManhattanDistance extends AbstractDistanceStrategy {
+export class Manhattan extends AbstractDistanceStrategy {
 
     constructor(){
         super();
