@@ -21,7 +21,7 @@ describe("Time-Series Comparator tests", () => {
         });
     });
 
-    describe("Valid input 1 ", () => {
+    describe("Valid input 1: Univariate ", () => {
 
         const reference =   [[9],[0],[1.1],[0.23],[6],[-10.9],[-3.2]];
 
@@ -66,7 +66,7 @@ describe("Time-Series Comparator tests", () => {
         
     });
 
-    describe("Valid input 2 ", () => {
+    describe("Valid input 2: Multivariate ", () => {
 
         const reference =   [[13.27, -6.14, 5.33], [-4.78, 10.19, -11.82], [1.76, 6.44, 8.28], 
                             [3.91, -13.93, -0.64], [-12.07, 5.7, -3.28], [7.66, -10.4, 2.01],
