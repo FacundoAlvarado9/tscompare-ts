@@ -4,3 +4,6 @@ export * from './strategies/IDistanceStrategy';
 export * from './strategies/UnweightedEuclidean';
 export * from './strategies/WeightedEuclidean';
 export * from './strategies/Manhattan';
+export * from './adapter/Adapter.types';
+export * from './adapter/TSComparatorAdapter'
+export * from './adapter/utils';
