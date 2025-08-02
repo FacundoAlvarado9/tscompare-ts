@@ -1,6 +1,6 @@
 import { abs, floor, max, mean, min } from 'mathjs';
 import type { DistanceStrategy } from './strategies/IDistanceStrategy';
-import type { ComparisonResult, Pair, Path, TimeSeries } from './types/TSComparator.types';
+import type { ComparisonResult, Pair, Path, ResultEntry, TimeSeries } from './types/TSComparator.types';
 import { TSValidator } from './validators/TSValidator';
 import { Matrix } from './types/matrix/Matrix';
 
@@ -33,12 +33,19 @@ export class TSComparator implements ITSComparator {
         const misalignment = this.calculateMisalignment(warping);
         const degreeOfMisalignment = this.calculateMisalignmentDegree(misalignment);
 
-        return {
-            warping: warping,
-            distance: distance,
-            misalignment: misalignment,
-            degree_of_misalignment: degreeOfMisalignment
+        const result = Array<ResultEntry>(reference.length);
+        for(let i=0; i<reference.length; i++){
+            result[i] = 
+                {
+                    index: i,
+                    warping: warping[i],
+                    distance: distance[i],
+                    misalignment: misalignment[i],
+                    degree_of_misalignment: degreeOfMisalignment[i]
+                };
         }
+
+        return result;
     }
     /**
      * Calculates the accumulated distance matrix for two time series.

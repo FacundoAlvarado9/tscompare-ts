@@ -45,42 +45,66 @@ describe("Time-Series Comparator tests", () => {
         const headers : Header[] = ["Test column"]
         const reference : TableData = {headers: headers, data: referenceData} as TableData;
         const target : TableData = {headers: headers, data: targetData} as TableData;
-
         
-        const expectedWarping = [0,1,2,3,3,4,4];
-        const expectedMisalignment = [0,0,0,0,-1,-1,-2];
-        const expectedDistance = [3.9,7.23,1.4,0.07,5.7,10.9,3.2];
-        const expectedDegreeOfMisalignment = [ 0,0,0,-1,0,-1,-1 ];
+        let expectedResult : ComparisonResult = [
+            {
+                "index": 0,
+                "warping": 0,
+                "distance": expect.closeTo(3.9),
+                "misalignment": 0,
+                "degree_of_misalignment": 0
+            },
+            {
+                "index": 1,
+                "warping": 1,
+                "distance": expect.closeTo(7.23),
+                "misalignment": 0,
+                "degree_of_misalignment": 0
+            },
+            {
+                "index": 2,
+                "warping": 2,
+                "distance": expect.closeTo(1.4),
+                "misalignment": 0,
+                "degree_of_misalignment": 0
+            },
+            {
+                "index": 3,
+                "warping": 3,
+                "distance": expect.closeTo(0.07),
+                "misalignment": 0,
+                "degree_of_misalignment": -1
+            },
+            {
+                "index": 4,
+                "warping": 3,
+                "distance": expect.closeTo(5.7),
+                "misalignment": -1,
+                "degree_of_misalignment": 0
+            },
+            {
+                "index": 5,
+                "warping": 4,
+                "distance": expect.closeTo(10.9),
+                "misalignment": -1,
+                "degree_of_misalignment": -1
+            },
+            {
+                "index": 6,
+                "warping": 4,
+                "distance": expect.closeTo(3.2),
+                "misalignment": -2,
+                "degree_of_misalignment": -1
+            }
+        ];
         let result : ComparisonResult;
         
         beforeAll(() => {
             result = adapter.runComparison(reference, target)
         });
 
-        test("Check distance correctness", () => {
-            expect(result.distance.length).toEqual(expectedDistance.length);
-            result.distance.forEach((actualDistance, index) => {
-                expect(actualDistance).toBeCloseTo(expectedDistance[index]);
-            });
-        });
-
-        test("Check warping correctness", () => {
-            expect(result.warping).toEqual(expectedWarping);
-            expect(result.warping.length).toEqual(expectedWarping.length);
-        });
-
-        test("Check misalignment correctness", () => {
-            expect(result.misalignment).toEqual(expectedMisalignment);
-            expect(result.misalignment.length).toEqual(expectedMisalignment.length);
-        });
-
-        test("Check misalignment degree correctness", () => {
-            expect(result.degree_of_misalignment.length).toEqual(expectedDegreeOfMisalignment.length);
-            result.degree_of_misalignment.forEach((actualDegree, index) => {
-                expect(actualDegree).toBeLessThanOrEqual(1);
-                expect(actualDegree).toBeGreaterThanOrEqual(-1);
-                expect(actualDegree).toBeCloseTo(expectedDegreeOfMisalignment[index]);
-            });
+        test("Check result", () => {
+            expect(result).toEqual(expectedResult);
         });
         
     });
@@ -104,12 +128,58 @@ describe("Time-Series Comparator tests", () => {
         const targetHeaders : Header[] = ["Timestamp", "Número"]
         const reference : TableData = {headers: refHeaders, data: referenceData} as TableData;
         const target : TableData = {headers: targetHeaders, data: targetData} as TableData;
-
         
-        const expectedWarping = [0,1,2,3,3,4,4];
-        const expectedMisalignment = [0,0,0,0,-1,-1,-2];
-        const expectedDistance = [3.9,7.23,1.4,0.07,5.7,10.9,3.2];
-        const expectedDegreeOfMisalignment = [ 0,0,0,-1,0,-1,-1 ];
+        let expectedResult : ComparisonResult = [
+            {
+                "index": 0,
+                "warping": 0,
+                "distance": expect.closeTo(3.9),
+                "misalignment": 0,
+                "degree_of_misalignment": 0
+            },
+            {
+                "index": 1,
+                "warping": 1,
+                "distance": expect.closeTo(7.23),
+                "misalignment": 0,
+                "degree_of_misalignment": 0
+            },
+            {
+                "index": 2,
+                "warping": 2,
+                "distance": expect.closeTo(1.4),
+                "misalignment": 0,
+                "degree_of_misalignment": 0
+            },
+            {
+                "index": 3,
+                "warping": 3,
+                "distance": expect.closeTo(0.07),
+                "misalignment": 0,
+                "degree_of_misalignment": -1
+            },
+            {
+                "index": 4,
+                "warping": 3,
+                "distance": expect.closeTo(5.7),
+                "misalignment": -1,
+                "degree_of_misalignment": 0
+            },
+            {
+                "index": 5,
+                "warping": 4,
+                "distance": expect.closeTo(10.9),
+                "misalignment": -1,
+                "degree_of_misalignment": -1
+            },
+            {
+                "index": 6,
+                "warping": 4,
+                "distance": expect.closeTo(3.2),
+                "misalignment": -2,
+                "degree_of_misalignment": -1
+            }
+        ];
         let result : ComparisonResult;
         
         beforeAll(() => {
@@ -118,30 +188,8 @@ describe("Time-Series Comparator tests", () => {
             result = adapter.runComparison(reference, target)
         });
 
-        test("Check distance correctness", () => {
-            expect(result.distance.length).toEqual(expectedDistance.length);
-            result.distance.forEach((actualDistance, index) => {
-                expect(actualDistance).toBeCloseTo(expectedDistance[index]);
-            });
-        });
-
-        test("Check warping correctness", () => {
-            expect(result.warping).toEqual(expectedWarping);
-            expect(result.warping.length).toEqual(expectedWarping.length);
-        });
-
-        test("Check misalignment correctness", () => {
-            expect(result.misalignment).toEqual(expectedMisalignment);
-            expect(result.misalignment.length).toEqual(expectedMisalignment.length);
-        });
-
-        test("Check misalignment degree correctness", () => {
-            expect(result.degree_of_misalignment.length).toEqual(expectedDegreeOfMisalignment.length);
-            result.degree_of_misalignment.forEach((actualDegree, index) => {
-                expect(actualDegree).toBeLessThanOrEqual(1);
-                expect(actualDegree).toBeGreaterThanOrEqual(-1);
-                expect(actualDegree).toBeCloseTo(expectedDegreeOfMisalignment[index]);
-            });
+        test("Check result", () => {
+            expect(result).toEqual(expectedResult);
         });
         
     });
@@ -176,13 +224,148 @@ describe("Time-Series Comparator tests", () => {
         const target : TableData = {headers: targetHeaders,data: targetData} as TableData;
 
         
-        const expectedWarping = [0,2,3,5,6,7,7,10,14,16,17,19,21,22,24,26,31,37,38,39];
-        const expectedMisalignment = [0,1,1,2,2,2,1,3,6,7,7,8,9,9,10,11,15,20,20,20];
-        const expectedDistance = [30.27,  6.58, 13.93, 13.95,  7.35,  9.22,  7.44, 18.86, 12.91,
-                                    9.78, 23.86,  7.85,  5.19,  3.94,  5.92, 14.66, 13.89, 13.76,
-                                    10.8 , 20.76];
-        const expectedDegreeOfMisalignment = [ 0.2,  0. ,  0.2,  0. ,  0. , -1. ,  0.4,  0.6,  0.2,  0. ,  0.2,
-                                    0.2,  0. ,  0.2,  0.2,  0.8,  1. ,  0. ,  0. ,  0. ];
+        const expectedResult = [
+            {
+                "index": 0,
+                "warping": 0,
+                "distance": expect.closeTo(30.27),
+                "misalignment": 0,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 1,
+                "warping": 2,
+                "distance": expect.closeTo(6.58),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 2,
+                "warping": 3,
+                "distance": expect.closeTo(13.93),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 3,
+                "warping": 5,
+                "distance": expect.closeTo(13.95),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 4,
+                "warping": 6,
+                "distance": expect.closeTo(7.35),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 5,
+                "warping": 7,
+                "distance": expect.closeTo(9.22),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(-1)
+            },
+            {
+                "index": 6,
+                "warping": 7,
+                "distance": expect.closeTo(7.44),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0.4)
+            },
+            {
+                "index": 7,
+                "warping": 10,
+                "distance": expect.closeTo(18.86),
+                "misalignment": 3,
+                "degree_of_misalignment": expect.closeTo(0.6)
+            },
+            {
+                "index": 8,
+                "warping": 14,
+                "distance": expect.closeTo(12.91),
+                "misalignment": 6,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 9,
+                "warping": 16,
+                "distance": expect.closeTo(9.78),
+                "misalignment": 7,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 10,
+                "warping": 17,
+                "distance": expect.closeTo(23.86),
+                "misalignment": 7,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 11,
+                "warping": 19,
+                "distance": expect.closeTo(7.85),
+                "misalignment": 8,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 12,
+                "warping": 21,
+                "distance": expect.closeTo(5.19),
+                "misalignment": 9,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 13,
+                "warping": 22,
+                "distance": expect.closeTo(3.94),
+                "misalignment": 9,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 14,
+                "warping": 24,
+                "distance": expect.closeTo(5.92),
+                "misalignment": 10,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 15,
+                "warping": 26,
+                "distance": expect.closeTo(14.66),
+                "misalignment": 11,
+                "degree_of_misalignment": expect.closeTo(0.8)
+            },
+            {
+                "index": 16,
+                "warping": 31,
+                "distance": expect.closeTo(13.89),
+                "misalignment": 15,
+                "degree_of_misalignment": expect.closeTo(1)
+            },
+            {
+                "index": 17,
+                "warping": 37,
+                "distance": expect.closeTo(13.76),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 18,
+                "warping": 38,
+                "distance": expect.closeTo(10.8),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 19,
+                "warping": 39,
+                "distance": expect.closeTo(20.76),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            }
+        ];
         let result : ComparisonResult;
         
         beforeAll(() => {
@@ -191,30 +374,8 @@ describe("Time-Series Comparator tests", () => {
             result = adapter.runComparison(reference, target)
         });
 
-        test("Check distance correctness", () => {
-            expect(result.distance.length).toEqual(expectedDistance.length);
-            result.distance.forEach((actualDistance, index) => {
-                expect(actualDistance).toBeCloseTo(expectedDistance[index]);
-            });
-        });
-
-        test("Check warping correctness", () => {
-            expect(result.warping).toEqual(expectedWarping);
-            expect(result.warping.length).toEqual(expectedWarping.length);
-        });
-
-        test("Check misalignment correctness", () => {
-            expect(result.misalignment).toEqual(expectedMisalignment);
-            expect(result.misalignment.length).toEqual(expectedMisalignment.length);
-        });
-
-        test("Check misalignment degree correctness", () => {
-            expect(result.degree_of_misalignment.length).toEqual(expectedDegreeOfMisalignment.length);
-            result.degree_of_misalignment.forEach((actualDegree, index) => {
-                expect(actualDegree).toBeLessThanOrEqual(1);
-                expect(actualDegree).toBeGreaterThanOrEqual(-1);
-                expect(actualDegree).toBeCloseTo(expectedDegreeOfMisalignment[index]);
-            });
+        test("Check result", () => {
+            expect(result).toEqual(expectedResult);
         });
         
     });
@@ -287,13 +448,148 @@ describe("Time-Series Comparator tests", () => {
         const target : TableData = {headers: targetHeaders,data: targetData} as TableData;
 
         
-        const expectedWarping = [0,2,3,5,6,7,7,10,14,16,17,19,21,22,24,26,31,37,38,39];
-        const expectedMisalignment = [0,1,1,2,2,2,1,3,6,7,7,8,9,9,10,11,15,20,20,20];
-        const expectedDistance = [30.27,  6.58, 13.93, 13.95,  7.35,  9.22,  7.44, 18.86, 12.91,
-                                    9.78, 23.86,  7.85,  5.19,  3.94,  5.92, 14.66, 13.89, 13.76,
-                                    10.8 , 20.76];
-        const expectedDegreeOfMisalignment = [ 0.2,  0. ,  0.2,  0. ,  0. , -1. ,  0.4,  0.6,  0.2,  0. ,  0.2,
-                                    0.2,  0. ,  0.2,  0.2,  0.8,  1. ,  0. ,  0. ,  0. ];
+        const expectedResult = [
+            {
+                "index": 0,
+                "warping": 0,
+                "distance": expect.closeTo(30.27),
+                "misalignment": 0,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 1,
+                "warping": 2,
+                "distance": expect.closeTo(6.58),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 2,
+                "warping": 3,
+                "distance": expect.closeTo(13.93),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 3,
+                "warping": 5,
+                "distance": expect.closeTo(13.95),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 4,
+                "warping": 6,
+                "distance": expect.closeTo(7.35),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 5,
+                "warping": 7,
+                "distance": expect.closeTo(9.22),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(-1)
+            },
+            {
+                "index": 6,
+                "warping": 7,
+                "distance": expect.closeTo(7.44),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0.4)
+            },
+            {
+                "index": 7,
+                "warping": 10,
+                "distance": expect.closeTo(18.86),
+                "misalignment": 3,
+                "degree_of_misalignment": expect.closeTo(0.6)
+            },
+            {
+                "index": 8,
+                "warping": 14,
+                "distance": expect.closeTo(12.91),
+                "misalignment": 6,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 9,
+                "warping": 16,
+                "distance": expect.closeTo(9.78),
+                "misalignment": 7,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 10,
+                "warping": 17,
+                "distance": expect.closeTo(23.86),
+                "misalignment": 7,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 11,
+                "warping": 19,
+                "distance": expect.closeTo(7.85),
+                "misalignment": 8,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 12,
+                "warping": 21,
+                "distance": expect.closeTo(5.19),
+                "misalignment": 9,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 13,
+                "warping": 22,
+                "distance": expect.closeTo(3.94),
+                "misalignment": 9,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 14,
+                "warping": 24,
+                "distance": expect.closeTo(5.92),
+                "misalignment": 10,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 15,
+                "warping": 26,
+                "distance": expect.closeTo(14.66),
+                "misalignment": 11,
+                "degree_of_misalignment": expect.closeTo(0.8)
+            },
+            {
+                "index": 16,
+                "warping": 31,
+                "distance": expect.closeTo(13.89),
+                "misalignment": 15,
+                "degree_of_misalignment": expect.closeTo(1)
+            },
+            {
+                "index": 17,
+                "warping": 37,
+                "distance": expect.closeTo(13.76),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 18,
+                "warping": 38,
+                "distance": expect.closeTo(10.8),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 19,
+                "warping": 39,
+                "distance": expect.closeTo(20.76),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            }
+        ];
         let result : ComparisonResult;
         
         beforeAll(() => {
@@ -302,30 +598,8 @@ describe("Time-Series Comparator tests", () => {
             result = adapter.runComparison(reference, target)
         });
 
-        test("Check distance correctness", () => {
-            expect(result.distance.length).toEqual(expectedDistance.length);
-            result.distance.forEach((actualDistance, index) => {
-                expect(actualDistance).toBeCloseTo(expectedDistance[index]);
-            });
-        });
-
-        test("Check warping correctness", () => {
-            expect(result.warping).toEqual(expectedWarping);
-            expect(result.warping.length).toEqual(expectedWarping.length);
-        });
-
-        test("Check misalignment correctness", () => {
-            expect(result.misalignment).toEqual(expectedMisalignment);
-            expect(result.misalignment.length).toEqual(expectedMisalignment.length);
-        });
-
-        test("Check misalignment degree correctness", () => {
-            expect(result.degree_of_misalignment.length).toEqual(expectedDegreeOfMisalignment.length);
-            result.degree_of_misalignment.forEach((actualDegree, index) => {
-                expect(actualDegree).toBeLessThanOrEqual(1);
-                expect(actualDegree).toBeGreaterThanOrEqual(-1);
-                expect(actualDegree).toBeCloseTo(expectedDegreeOfMisalignment[index]);
-            });
+        test("Check result", () => {
+            expect(result).toEqual(expectedResult);
         });
         
     });
