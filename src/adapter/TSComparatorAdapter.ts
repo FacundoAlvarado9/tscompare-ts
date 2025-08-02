@@ -1,9 +1,9 @@
 import { hasNumericValue} from "mathjs";
-import { ComparisonResult, DistanceStrategy, NDimensionalPoint, Row, TableData, TimeSeries, TSComparator } from "..";
+import { AdaptedResult, ComparisonResult, DistanceStrategy, NDimensionalPoint, Row, TableData, TimeSeries, TSComparator } from "..";
 
 export interface ITableDataComparator {
     setStrategy(distanceStrategy : DistanceStrategy) : void;
-    runComparison(reference : TableData, target : TableData) : ComparisonResult;
+    runComparison(reference : TableData, target : TableData) : AdaptedResult;
 }
 
 export class TableDataComparator implements ITableDataComparator {
@@ -38,11 +38,22 @@ export class TableDataComparator implements ITableDataComparator {
         this.adaptee.setStrategy(distanceStrategy);
     }
 
-    runComparison(reference: TableData, target: TableData): ComparisonResult {
-        const referenceTS : TimeSeries = this.convertToTimeSeries(reference, this.refTimestampCol);
-        const targetTS : TimeSeries = this.convertToTimeSeries(target, this.targetTimestampCol);
-
-        return this.adaptee.runComparison(referenceTS, targetTS);
+    runComparison(reference: TableData, target: TableData): AdaptedResult {
+        let adaptedResult : AdaptedResult;
+        try {
+            const referenceTS : TimeSeries = this.convertToTimeSeries(reference, this.refTimestampCol);
+            const targetTS : TimeSeries = this.convertToTimeSeries(target, this.targetTimestampCol);            
+            adaptedResult = {status: "Success", result: this.adaptee.runComparison(referenceTS, targetTS)}
+        } catch (error) {
+            let message;
+            if(error instanceof Error){
+                message = error.message;
+            } else {
+                message = error;
+            }
+            adaptedResult = {status: "Error", errorMessage: message}
+        }
+        return adaptedResult;
     }
 
     private convertToTimeSeries (tableData : TableData, timestampColumn : number) : TimeSeries {

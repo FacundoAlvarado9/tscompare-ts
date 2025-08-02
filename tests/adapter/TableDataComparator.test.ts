@@ -1,4 +1,4 @@
-import { TSComparator, UnweightedEuclidean, TimeSeries, ComparisonResult, TableData, Row, Header, TableDataComparator } from "../../src";
+import { TSComparator, UnweightedEuclidean, TimeSeries, AdaptedResult, TableData, Row, Header, TableDataComparator } from "../../src";
 
 describe("Time-Series Comparator tests", () => {
 
@@ -6,7 +6,7 @@ describe("Time-Series Comparator tests", () => {
     const adapter = new TableDataComparator(comparator);
     adapter.setStrategy(new UnweightedEuclidean());
 
-    describe("Invalid inputs ", () => {
+    describe("Invalid inputs: Empty tables ", () => {
 
         const emptyTable : TableData = {headers: [], data: []} as TableData;
 
@@ -17,87 +17,63 @@ describe("Time-Series Comparator tests", () => {
             ["122", "1"]
         ];
         const validHeaders : Header[] = ["Column 1", "Column 2"];
-        const validTable : TableData = {headers: validHeaders, data: ValidData};
+        const validTable : TableData = {headers: validHeaders, data: ValidData};   
 
+        const expectedResult : AdaptedResult = {
+            status: "Error",
+            errorMessage: "Time-series must not be empty"
+        }
+
+        test("Comparison is not possible for empty tables", () =>{
+            expect(adapter.runComparison(emptyTable, validTable)).toEqual(expectedResult);
+            expect(adapter.runComparison(validTable, emptyTable)).toEqual(expectedResult);
+        });            
+    });
+
+    describe("Invalid inputs: Dimensionally inconsistent tables", () => {
+        const testHeaders : Header[] = ["Column 1", "Column 2", "Column 3"];
         const dimensionallyInconsistentData : Row[] = [
             ["1","-2","0"],
             ["25","54","4.5"],
             ["-8.2"],
             ["122","1"]
         ];
-        const testHeaders : Header[] = ["Column 1", "Column 2", "Column 3"];
         const dimensionallyInconsistentTable : TableData = {headers: testHeaders, data: dimensionallyInconsistentData};
 
-        test("Comparison is not possible for empty tables", () =>{
-            expect(() => adapter.runComparison(emptyTable, validTable)).toThrow();
-            expect(() => adapter.runComparison(validTable, emptyTable)).toThrow();
-        });
+        const validHeaders : Header[] = ["Column 1", "Column 2"];
+        const ValidData : Row[] = [
+            ["1","-2"],
+            ["25","54"],
+            ["12.3","-8.2"],
+            ["122", "1"]
+        ];
+        const validTable : TableData = {headers: validHeaders, data: ValidData};
+
+        const expectedResult : AdaptedResult = {
+            status: "Error",
+            errorMessage: "Dimensions must be consistent across all the points of a time-series."
+        }        
 
         test("Comparison is not possible for dimensionally inconsistent time-series", () => {
-            expect(() => adapter.runComparison(dimensionallyInconsistentTable, validTable)).toThrow();
+            expect(adapter.runComparison(dimensionallyInconsistentTable, validTable)).toEqual(expectedResult);
         });
+
     });
 
-    describe("Valid input 1: Univariate with no timestamp", () => {
+    describe("Invalid inputs: Table with non-numeric values", () => {
 
-        const referenceData = [["9"],["0"],["1.1"],["0.23"],["6"],["-10.9"],["-3.2"]];
-        const targetData = [["5.1"], ["-7.23"], ["2.5"], ["0.3"], ["0"]];
+        const referenceData = [["9"],["0p"],["1.1"],["0.a23"],["6b"],["-10.9"],["-3.2"]];
+        const targetData = [["5.1"], ["o-7.23"], ["$2.5"], ["0.3%"], ["0"]];
         const headers : Header[] = ["Test column"]
         const reference : TableData = {headers: headers, data: referenceData} as TableData;
         const target : TableData = {headers: headers, data: targetData} as TableData;
         
-        let expectedResult : ComparisonResult = [
-            {
-                "index": 0,
-                "warping": 0,
-                "distance": expect.closeTo(3.9),
-                "misalignment": 0,
-                "degree_of_misalignment": 0
-            },
-            {
-                "index": 1,
-                "warping": 1,
-                "distance": expect.closeTo(7.23),
-                "misalignment": 0,
-                "degree_of_misalignment": 0
-            },
-            {
-                "index": 2,
-                "warping": 2,
-                "distance": expect.closeTo(1.4),
-                "misalignment": 0,
-                "degree_of_misalignment": 0
-            },
-            {
-                "index": 3,
-                "warping": 3,
-                "distance": expect.closeTo(0.07),
-                "misalignment": 0,
-                "degree_of_misalignment": -1
-            },
-            {
-                "index": 4,
-                "warping": 3,
-                "distance": expect.closeTo(5.7),
-                "misalignment": -1,
-                "degree_of_misalignment": 0
-            },
-            {
-                "index": 5,
-                "warping": 4,
-                "distance": expect.closeTo(10.9),
-                "misalignment": -1,
-                "degree_of_misalignment": -1
-            },
-            {
-                "index": 6,
-                "warping": 4,
-                "distance": expect.closeTo(3.2),
-                "misalignment": -2,
-                "degree_of_misalignment": -1
-            }
-        ];
-        let result : ComparisonResult;
+        const expectedResult : AdaptedResult = {
+            status: "Error",
+            errorMessage: "Cell 0 at row 1 must contain numeric values."
+        };
+
+        let result : AdaptedResult;
         
         beforeAll(() => {
             result = adapter.runComparison(reference, target)
@@ -109,7 +85,82 @@ describe("Time-Series Comparator tests", () => {
         
     });
 
-    describe("Valid input 1: Univariate with timestamp column", () => {
+    describe("Valid input: Univariate with no timestamp", () => {
+
+        const referenceData = [["9"],["0"],["1.1"],["0.23"],["6"],["-10.9"],["-3.2"]];
+        const targetData = [["5.1"], ["-7.23"], ["2.5"], ["0.3"], ["0"]];
+        const headers : Header[] = ["Test column"]
+        const reference : TableData = {headers: headers, data: referenceData} as TableData;
+        const target : TableData = {headers: headers, data: targetData} as TableData;
+        
+        let expectedResult : AdaptedResult = 
+        {
+            status: "Success",
+            result: [
+                {
+                    "index": 0,
+                    "warping": 0,
+                    "distance": expect.closeTo(3.9),
+                    "misalignment": 0,
+                    "degree_of_misalignment": 0
+                },
+                {
+                    "index": 1,
+                    "warping": 1,
+                    "distance": expect.closeTo(7.23),
+                    "misalignment": 0,
+                    "degree_of_misalignment": 0
+                },
+                {
+                    "index": 2,
+                    "warping": 2,
+                    "distance": expect.closeTo(1.4),
+                    "misalignment": 0,
+                    "degree_of_misalignment": 0
+                },
+                {
+                    "index": 3,
+                    "warping": 3,
+                    "distance": expect.closeTo(0.07),
+                    "misalignment": 0,
+                    "degree_of_misalignment": -1
+                },
+                {
+                    "index": 4,
+                    "warping": 3,
+                    "distance": expect.closeTo(5.7),
+                    "misalignment": -1,
+                    "degree_of_misalignment": 0
+                },
+                {
+                    "index": 5,
+                    "warping": 4,
+                    "distance": expect.closeTo(10.9),
+                    "misalignment": -1,
+                    "degree_of_misalignment": -1
+                },
+                {
+                    "index": 6,
+                    "warping": 4,
+                    "distance": expect.closeTo(3.2),
+                    "misalignment": -2,
+                    "degree_of_misalignment": -1
+                }
+            ]
+        };
+        let result : AdaptedResult;
+        
+        beforeAll(() => {
+            result = adapter.runComparison(reference, target)
+        });
+
+        test("Check result", () => {
+            expect(result).toEqual(expectedResult);
+        });
+        
+    });
+
+    describe("Valid input: Univariate with timestamp column", () => {
 
         const referenceData = [["-3.2", "2025-07-07"],
                                 ["1.1", "2025-07-03"],
@@ -129,58 +180,61 @@ describe("Time-Series Comparator tests", () => {
         const reference : TableData = {headers: refHeaders, data: referenceData} as TableData;
         const target : TableData = {headers: targetHeaders, data: targetData} as TableData;
         
-        let expectedResult : ComparisonResult = [
-            {
-                "index": 0,
-                "warping": 0,
-                "distance": expect.closeTo(3.9),
-                "misalignment": 0,
-                "degree_of_misalignment": 0
-            },
-            {
-                "index": 1,
-                "warping": 1,
-                "distance": expect.closeTo(7.23),
-                "misalignment": 0,
-                "degree_of_misalignment": 0
-            },
-            {
-                "index": 2,
-                "warping": 2,
-                "distance": expect.closeTo(1.4),
-                "misalignment": 0,
-                "degree_of_misalignment": 0
-            },
-            {
-                "index": 3,
-                "warping": 3,
-                "distance": expect.closeTo(0.07),
-                "misalignment": 0,
-                "degree_of_misalignment": -1
-            },
-            {
-                "index": 4,
-                "warping": 3,
-                "distance": expect.closeTo(5.7),
-                "misalignment": -1,
-                "degree_of_misalignment": 0
-            },
-            {
-                "index": 5,
-                "warping": 4,
-                "distance": expect.closeTo(10.9),
-                "misalignment": -1,
-                "degree_of_misalignment": -1
-            },
-            {
-                "index": 6,
-                "warping": 4,
-                "distance": expect.closeTo(3.2),
-                "misalignment": -2,
-                "degree_of_misalignment": -1
-            }
-        ];
-        let result : ComparisonResult;
+        let expectedResult : AdaptedResult = {
+            status: "Success",
+            result: [
+                {
+                    "index": 0,
+                    "warping": 0,
+                    "distance": expect.closeTo(3.9),
+                    "misalignment": 0,
+                    "degree_of_misalignment": 0
+                },
+                {
+                    "index": 1,
+                    "warping": 1,
+                    "distance": expect.closeTo(7.23),
+                    "misalignment": 0,
+                    "degree_of_misalignment": 0
+                },
+                {
+                    "index": 2,
+                    "warping": 2,
+                    "distance": expect.closeTo(1.4),
+                    "misalignment": 0,
+                    "degree_of_misalignment": 0
+                },
+                {
+                    "index": 3,
+                    "warping": 3,
+                    "distance": expect.closeTo(0.07),
+                    "misalignment": 0,
+                    "degree_of_misalignment": -1
+                },
+                {
+                    "index": 4,
+                    "warping": 3,
+                    "distance": expect.closeTo(5.7),
+                    "misalignment": -1,
+                    "degree_of_misalignment": 0
+                },
+                {
+                    "index": 5,
+                    "warping": 4,
+                    "distance": expect.closeTo(10.9),
+                    "misalignment": -1,
+                    "degree_of_misalignment": -1
+                },
+                {
+                    "index": 6,
+                    "warping": 4,
+                    "distance": expect.closeTo(3.2),
+                    "misalignment": -2,
+                    "degree_of_misalignment": -1
+                }
+            ]
+        };
+        let result : AdaptedResult;
         
         beforeAll(() => {
             adapter.setReferenceTimestampColumn(1);
@@ -194,7 +248,7 @@ describe("Time-Series Comparator tests", () => {
         
     });
 
-    describe("Valid input 2: Multivariate w/ no timestamp", () => {
+    describe("Valid input: Multivariate w/ no timestamp", () => {
 
         const referenceHeaders : Header[] = ["Var. 1", "Var. 2", "Var. 3"];
         const referenceData : Row[] =   [["13.27", "-6.14", "5.33"], ["-4.78", "10.19", "-11.82"], ["1.76", "6.44", "8.28"],
@@ -224,149 +278,152 @@ describe("Time-Series Comparator tests", () => {
         const target : TableData = {headers: targetHeaders,data: targetData} as TableData;
 
         
-        const expectedResult = [
-            {
-                "index": 0,
-                "warping": 0,
-                "distance": expect.closeTo(30.27),
-                "misalignment": 0,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 1,
-                "warping": 2,
-                "distance": expect.closeTo(6.58),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 2,
-                "warping": 3,
-                "distance": expect.closeTo(13.93),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 3,
-                "warping": 5,
-                "distance": expect.closeTo(13.95),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 4,
-                "warping": 6,
-                "distance": expect.closeTo(7.35),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 5,
-                "warping": 7,
-                "distance": expect.closeTo(9.22),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(-1)
-            },
-            {
-                "index": 6,
-                "warping": 7,
-                "distance": expect.closeTo(7.44),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0.4)
-            },
-            {
-                "index": 7,
-                "warping": 10,
-                "distance": expect.closeTo(18.86),
-                "misalignment": 3,
-                "degree_of_misalignment": expect.closeTo(0.6)
-            },
-            {
-                "index": 8,
-                "warping": 14,
-                "distance": expect.closeTo(12.91),
-                "misalignment": 6,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 9,
-                "warping": 16,
-                "distance": expect.closeTo(9.78),
-                "misalignment": 7,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 10,
-                "warping": 17,
-                "distance": expect.closeTo(23.86),
-                "misalignment": 7,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 11,
-                "warping": 19,
-                "distance": expect.closeTo(7.85),
-                "misalignment": 8,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 12,
-                "warping": 21,
-                "distance": expect.closeTo(5.19),
-                "misalignment": 9,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 13,
-                "warping": 22,
-                "distance": expect.closeTo(3.94),
-                "misalignment": 9,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 14,
-                "warping": 24,
-                "distance": expect.closeTo(5.92),
-                "misalignment": 10,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 15,
-                "warping": 26,
-                "distance": expect.closeTo(14.66),
-                "misalignment": 11,
-                "degree_of_misalignment": expect.closeTo(0.8)
-            },
-            {
-                "index": 16,
-                "warping": 31,
-                "distance": expect.closeTo(13.89),
-                "misalignment": 15,
-                "degree_of_misalignment": expect.closeTo(1)
-            },
-            {
-                "index": 17,
-                "warping": 37,
-                "distance": expect.closeTo(13.76),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 18,
-                "warping": 38,
-                "distance": expect.closeTo(10.8),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 19,
-                "warping": 39,
-                "distance": expect.closeTo(20.76),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            }
-        ];
-        let result : ComparisonResult;
+        const expectedResult : AdaptedResult = {
+            status: "Success",
+            result: [
+                {
+                    "index": 0,
+                    "warping": 0,
+                    "distance": expect.closeTo(30.27),
+                    "misalignment": 0,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 1,
+                    "warping": 2,
+                    "distance": expect.closeTo(6.58),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 2,
+                    "warping": 3,
+                    "distance": expect.closeTo(13.93),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 3,
+                    "warping": 5,
+                    "distance": expect.closeTo(13.95),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 4,
+                    "warping": 6,
+                    "distance": expect.closeTo(7.35),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 5,
+                    "warping": 7,
+                    "distance": expect.closeTo(9.22),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(-1)
+                },
+                {
+                    "index": 6,
+                    "warping": 7,
+                    "distance": expect.closeTo(7.44),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0.4)
+                },
+                {
+                    "index": 7,
+                    "warping": 10,
+                    "distance": expect.closeTo(18.86),
+                    "misalignment": 3,
+                    "degree_of_misalignment": expect.closeTo(0.6)
+                },
+                {
+                    "index": 8,
+                    "warping": 14,
+                    "distance": expect.closeTo(12.91),
+                    "misalignment": 6,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 9,
+                    "warping": 16,
+                    "distance": expect.closeTo(9.78),
+                    "misalignment": 7,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 10,
+                    "warping": 17,
+                    "distance": expect.closeTo(23.86),
+                    "misalignment": 7,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 11,
+                    "warping": 19,
+                    "distance": expect.closeTo(7.85),
+                    "misalignment": 8,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 12,
+                    "warping": 21,
+                    "distance": expect.closeTo(5.19),
+                    "misalignment": 9,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 13,
+                    "warping": 22,
+                    "distance": expect.closeTo(3.94),
+                    "misalignment": 9,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 14,
+                    "warping": 24,
+                    "distance": expect.closeTo(5.92),
+                    "misalignment": 10,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 15,
+                    "warping": 26,
+                    "distance": expect.closeTo(14.66),
+                    "misalignment": 11,
+                    "degree_of_misalignment": expect.closeTo(0.8)
+                },
+                {
+                    "index": 16,
+                    "warping": 31,
+                    "distance": expect.closeTo(13.89),
+                    "misalignment": 15,
+                    "degree_of_misalignment": expect.closeTo(1)
+                },
+                {
+                    "index": 17,
+                    "warping": 37,
+                    "distance": expect.closeTo(13.76),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 18,
+                    "warping": 38,
+                    "distance": expect.closeTo(10.8),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 19,
+                    "warping": 39,
+                    "distance": expect.closeTo(20.76),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                }
+            ]
+        };
+        let result : AdaptedResult;
         
         beforeAll(() => {
             adapter.setReferenceTimestampColumn(-1);
@@ -379,7 +436,7 @@ describe("Time-Series Comparator tests", () => {
         });
         
     });
-    describe("Valid input 2: Multivariate w/ timestamp", () => {
+    describe("Valid input: Multivariate w/ timestamp", () => {
 
         const referenceHeaders : Header[] = ["Var. 1", "Date", "Var. 2", "Var. 3"];
         const referenceData : Row[] =   [['3.17', '2025-07-16T00:00:00', '12.87', '9.41'],
@@ -448,149 +505,152 @@ describe("Time-Series Comparator tests", () => {
         const target : TableData = {headers: targetHeaders,data: targetData} as TableData;
 
         
-        const expectedResult = [
-            {
-                "index": 0,
-                "warping": 0,
-                "distance": expect.closeTo(30.27),
-                "misalignment": 0,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 1,
-                "warping": 2,
-                "distance": expect.closeTo(6.58),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 2,
-                "warping": 3,
-                "distance": expect.closeTo(13.93),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 3,
-                "warping": 5,
-                "distance": expect.closeTo(13.95),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 4,
-                "warping": 6,
-                "distance": expect.closeTo(7.35),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 5,
-                "warping": 7,
-                "distance": expect.closeTo(9.22),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(-1)
-            },
-            {
-                "index": 6,
-                "warping": 7,
-                "distance": expect.closeTo(7.44),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0.4)
-            },
-            {
-                "index": 7,
-                "warping": 10,
-                "distance": expect.closeTo(18.86),
-                "misalignment": 3,
-                "degree_of_misalignment": expect.closeTo(0.6)
-            },
-            {
-                "index": 8,
-                "warping": 14,
-                "distance": expect.closeTo(12.91),
-                "misalignment": 6,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 9,
-                "warping": 16,
-                "distance": expect.closeTo(9.78),
-                "misalignment": 7,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 10,
-                "warping": 17,
-                "distance": expect.closeTo(23.86),
-                "misalignment": 7,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 11,
-                "warping": 19,
-                "distance": expect.closeTo(7.85),
-                "misalignment": 8,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 12,
-                "warping": 21,
-                "distance": expect.closeTo(5.19),
-                "misalignment": 9,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 13,
-                "warping": 22,
-                "distance": expect.closeTo(3.94),
-                "misalignment": 9,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 14,
-                "warping": 24,
-                "distance": expect.closeTo(5.92),
-                "misalignment": 10,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 15,
-                "warping": 26,
-                "distance": expect.closeTo(14.66),
-                "misalignment": 11,
-                "degree_of_misalignment": expect.closeTo(0.8)
-            },
-            {
-                "index": 16,
-                "warping": 31,
-                "distance": expect.closeTo(13.89),
-                "misalignment": 15,
-                "degree_of_misalignment": expect.closeTo(1)
-            },
-            {
-                "index": 17,
-                "warping": 37,
-                "distance": expect.closeTo(13.76),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 18,
-                "warping": 38,
-                "distance": expect.closeTo(10.8),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 19,
-                "warping": 39,
-                "distance": expect.closeTo(20.76),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            }
-        ];
-        let result : ComparisonResult;
+        const expectedResult : AdaptedResult = {
+            status: "Success",
+            result: [
+                {
+                    "index": 0,
+                    "warping": 0,
+                    "distance": expect.closeTo(30.27),
+                    "misalignment": 0,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 1,
+                    "warping": 2,
+                    "distance": expect.closeTo(6.58),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 2,
+                    "warping": 3,
+                    "distance": expect.closeTo(13.93),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 3,
+                    "warping": 5,
+                    "distance": expect.closeTo(13.95),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 4,
+                    "warping": 6,
+                    "distance": expect.closeTo(7.35),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 5,
+                    "warping": 7,
+                    "distance": expect.closeTo(9.22),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(-1)
+                },
+                {
+                    "index": 6,
+                    "warping": 7,
+                    "distance": expect.closeTo(7.44),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0.4)
+                },
+                {
+                    "index": 7,
+                    "warping": 10,
+                    "distance": expect.closeTo(18.86),
+                    "misalignment": 3,
+                    "degree_of_misalignment": expect.closeTo(0.6)
+                },
+                {
+                    "index": 8,
+                    "warping": 14,
+                    "distance": expect.closeTo(12.91),
+                    "misalignment": 6,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 9,
+                    "warping": 16,
+                    "distance": expect.closeTo(9.78),
+                    "misalignment": 7,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 10,
+                    "warping": 17,
+                    "distance": expect.closeTo(23.86),
+                    "misalignment": 7,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 11,
+                    "warping": 19,
+                    "distance": expect.closeTo(7.85),
+                    "misalignment": 8,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 12,
+                    "warping": 21,
+                    "distance": expect.closeTo(5.19),
+                    "misalignment": 9,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 13,
+                    "warping": 22,
+                    "distance": expect.closeTo(3.94),
+                    "misalignment": 9,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 14,
+                    "warping": 24,
+                    "distance": expect.closeTo(5.92),
+                    "misalignment": 10,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 15,
+                    "warping": 26,
+                    "distance": expect.closeTo(14.66),
+                    "misalignment": 11,
+                    "degree_of_misalignment": expect.closeTo(0.8)
+                },
+                {
+                    "index": 16,
+                    "warping": 31,
+                    "distance": expect.closeTo(13.89),
+                    "misalignment": 15,
+                    "degree_of_misalignment": expect.closeTo(1)
+                },
+                {
+                    "index": 17,
+                    "warping": 37,
+                    "distance": expect.closeTo(13.76),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 18,
+                    "warping": 38,
+                    "distance": expect.closeTo(10.8),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 19,
+                    "warping": 39,
+                    "distance": expect.closeTo(20.76),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                }
+            ]
+        };
+        let result : AdaptedResult;
         
         beforeAll(() => {
             adapter.setReferenceTimestampColumn(1);
@@ -603,7 +663,7 @@ describe("Time-Series Comparator tests", () => {
         });
         
     });
-    describe("Valid input 2: Multivariate w/ timestamps at index 0", () => {
+    describe("Valid input: Multivariate w/ timestamps at index 0", () => {
 
         const referenceHeaders : Header[] = ["Date", "Var. 1", "Var. 2", "Var. 3"];
         const referenceData : Row[] =   [['2025-07-16T00:00:00', '3.17', '12.87', '9.41'],
@@ -672,149 +732,152 @@ describe("Time-Series Comparator tests", () => {
         const target : TableData = {headers: targetHeaders,data: targetData} as TableData;
 
         
-        const expectedResult = [
-            {
-                "index": 0,
-                "warping": 0,
-                "distance": expect.closeTo(30.27),
-                "misalignment": 0,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 1,
-                "warping": 2,
-                "distance": expect.closeTo(6.58),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 2,
-                "warping": 3,
-                "distance": expect.closeTo(13.93),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 3,
-                "warping": 5,
-                "distance": expect.closeTo(13.95),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 4,
-                "warping": 6,
-                "distance": expect.closeTo(7.35),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 5,
-                "warping": 7,
-                "distance": expect.closeTo(9.22),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(-1)
-            },
-            {
-                "index": 6,
-                "warping": 7,
-                "distance": expect.closeTo(7.44),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0.4)
-            },
-            {
-                "index": 7,
-                "warping": 10,
-                "distance": expect.closeTo(18.86),
-                "misalignment": 3,
-                "degree_of_misalignment": expect.closeTo(0.6)
-            },
-            {
-                "index": 8,
-                "warping": 14,
-                "distance": expect.closeTo(12.91),
-                "misalignment": 6,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 9,
-                "warping": 16,
-                "distance": expect.closeTo(9.78),
-                "misalignment": 7,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 10,
-                "warping": 17,
-                "distance": expect.closeTo(23.86),
-                "misalignment": 7,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 11,
-                "warping": 19,
-                "distance": expect.closeTo(7.85),
-                "misalignment": 8,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 12,
-                "warping": 21,
-                "distance": expect.closeTo(5.19),
-                "misalignment": 9,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 13,
-                "warping": 22,
-                "distance": expect.closeTo(3.94),
-                "misalignment": 9,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 14,
-                "warping": 24,
-                "distance": expect.closeTo(5.92),
-                "misalignment": 10,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 15,
-                "warping": 26,
-                "distance": expect.closeTo(14.66),
-                "misalignment": 11,
-                "degree_of_misalignment": expect.closeTo(0.8)
-            },
-            {
-                "index": 16,
-                "warping": 31,
-                "distance": expect.closeTo(13.89),
-                "misalignment": 15,
-                "degree_of_misalignment": expect.closeTo(1)
-            },
-            {
-                "index": 17,
-                "warping": 37,
-                "distance": expect.closeTo(13.76),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 18,
-                "warping": 38,
-                "distance": expect.closeTo(10.8),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 19,
-                "warping": 39,
-                "distance": expect.closeTo(20.76),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            }
-        ];
-        let result : ComparisonResult;
+        const expectedResult = {
+            status: "Success",
+            result: [
+                {
+                    "index": 0,
+                    "warping": 0,
+                    "distance": expect.closeTo(30.27),
+                    "misalignment": 0,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 1,
+                    "warping": 2,
+                    "distance": expect.closeTo(6.58),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 2,
+                    "warping": 3,
+                    "distance": expect.closeTo(13.93),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 3,
+                    "warping": 5,
+                    "distance": expect.closeTo(13.95),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 4,
+                    "warping": 6,
+                    "distance": expect.closeTo(7.35),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 5,
+                    "warping": 7,
+                    "distance": expect.closeTo(9.22),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(-1)
+                },
+                {
+                    "index": 6,
+                    "warping": 7,
+                    "distance": expect.closeTo(7.44),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0.4)
+                },
+                {
+                    "index": 7,
+                    "warping": 10,
+                    "distance": expect.closeTo(18.86),
+                    "misalignment": 3,
+                    "degree_of_misalignment": expect.closeTo(0.6)
+                },
+                {
+                    "index": 8,
+                    "warping": 14,
+                    "distance": expect.closeTo(12.91),
+                    "misalignment": 6,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 9,
+                    "warping": 16,
+                    "distance": expect.closeTo(9.78),
+                    "misalignment": 7,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 10,
+                    "warping": 17,
+                    "distance": expect.closeTo(23.86),
+                    "misalignment": 7,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 11,
+                    "warping": 19,
+                    "distance": expect.closeTo(7.85),
+                    "misalignment": 8,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 12,
+                    "warping": 21,
+                    "distance": expect.closeTo(5.19),
+                    "misalignment": 9,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 13,
+                    "warping": 22,
+                    "distance": expect.closeTo(3.94),
+                    "misalignment": 9,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 14,
+                    "warping": 24,
+                    "distance": expect.closeTo(5.92),
+                    "misalignment": 10,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 15,
+                    "warping": 26,
+                    "distance": expect.closeTo(14.66),
+                    "misalignment": 11,
+                    "degree_of_misalignment": expect.closeTo(0.8)
+                },
+                {
+                    "index": 16,
+                    "warping": 31,
+                    "distance": expect.closeTo(13.89),
+                    "misalignment": 15,
+                    "degree_of_misalignment": expect.closeTo(1)
+                },
+                {
+                    "index": 17,
+                    "warping": 37,
+                    "distance": expect.closeTo(13.76),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 18,
+                    "warping": 38,
+                    "distance": expect.closeTo(10.8),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 19,
+                    "warping": 39,
+                    "distance": expect.closeTo(20.76),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                }
+            ]
+        };
+        let result : AdaptedResult;
         
         beforeAll(() => {
             adapter.setReferenceTimestampColumn(0);
@@ -827,7 +890,7 @@ describe("Time-Series Comparator tests", () => {
         });
         
     });
-    describe("Valid input 2: Multivariate w/ timestamps at index 0 with YYYY-MM-DD format", () => {
+    describe("Valid input: Multivariate w/ timestamps at index 0 with YYYY-MM-DD format", () => {
 
         const referenceHeaders : Header[] = ["Date", "Var. 1", "Var. 2", "Var. 3"];
         const referenceData : Row[] =   [['2025-07-16', '3.17', '12.87', '9.41'],
@@ -896,149 +959,152 @@ describe("Time-Series Comparator tests", () => {
         const target : TableData = {headers: targetHeaders,data: targetData} as TableData;
 
         
-        const expectedResult = [
-            {
-                "index": 0,
-                "warping": 0,
-                "distance": expect.closeTo(30.27),
-                "misalignment": 0,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 1,
-                "warping": 2,
-                "distance": expect.closeTo(6.58),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 2,
-                "warping": 3,
-                "distance": expect.closeTo(13.93),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 3,
-                "warping": 5,
-                "distance": expect.closeTo(13.95),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 4,
-                "warping": 6,
-                "distance": expect.closeTo(7.35),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 5,
-                "warping": 7,
-                "distance": expect.closeTo(9.22),
-                "misalignment": 2,
-                "degree_of_misalignment": expect.closeTo(-1)
-            },
-            {
-                "index": 6,
-                "warping": 7,
-                "distance": expect.closeTo(7.44),
-                "misalignment": 1,
-                "degree_of_misalignment": expect.closeTo(0.4)
-            },
-            {
-                "index": 7,
-                "warping": 10,
-                "distance": expect.closeTo(18.86),
-                "misalignment": 3,
-                "degree_of_misalignment": expect.closeTo(0.6)
-            },
-            {
-                "index": 8,
-                "warping": 14,
-                "distance": expect.closeTo(12.91),
-                "misalignment": 6,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 9,
-                "warping": 16,
-                "distance": expect.closeTo(9.78),
-                "misalignment": 7,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 10,
-                "warping": 17,
-                "distance": expect.closeTo(23.86),
-                "misalignment": 7,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 11,
-                "warping": 19,
-                "distance": expect.closeTo(7.85),
-                "misalignment": 8,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 12,
-                "warping": 21,
-                "distance": expect.closeTo(5.19),
-                "misalignment": 9,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 13,
-                "warping": 22,
-                "distance": expect.closeTo(3.94),
-                "misalignment": 9,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 14,
-                "warping": 24,
-                "distance": expect.closeTo(5.92),
-                "misalignment": 10,
-                "degree_of_misalignment": expect.closeTo(0.2)
-            },
-            {
-                "index": 15,
-                "warping": 26,
-                "distance": expect.closeTo(14.66),
-                "misalignment": 11,
-                "degree_of_misalignment": expect.closeTo(0.8)
-            },
-            {
-                "index": 16,
-                "warping": 31,
-                "distance": expect.closeTo(13.89),
-                "misalignment": 15,
-                "degree_of_misalignment": expect.closeTo(1)
-            },
-            {
-                "index": 17,
-                "warping": 37,
-                "distance": expect.closeTo(13.76),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 18,
-                "warping": 38,
-                "distance": expect.closeTo(10.8),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            },
-            {
-                "index": 19,
-                "warping": 39,
-                "distance": expect.closeTo(20.76),
-                "misalignment": 20,
-                "degree_of_misalignment": expect.closeTo(0)
-            }
-        ];
-        let result : ComparisonResult;
+        const expectedResult = {
+            status: "Success",
+            result: [
+                {
+                    "index": 0,
+                    "warping": 0,
+                    "distance": expect.closeTo(30.27),
+                    "misalignment": 0,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 1,
+                    "warping": 2,
+                    "distance": expect.closeTo(6.58),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 2,
+                    "warping": 3,
+                    "distance": expect.closeTo(13.93),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 3,
+                    "warping": 5,
+                    "distance": expect.closeTo(13.95),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 4,
+                    "warping": 6,
+                    "distance": expect.closeTo(7.35),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 5,
+                    "warping": 7,
+                    "distance": expect.closeTo(9.22),
+                    "misalignment": 2,
+                    "degree_of_misalignment": expect.closeTo(-1)
+                },
+                {
+                    "index": 6,
+                    "warping": 7,
+                    "distance": expect.closeTo(7.44),
+                    "misalignment": 1,
+                    "degree_of_misalignment": expect.closeTo(0.4)
+                },
+                {
+                    "index": 7,
+                    "warping": 10,
+                    "distance": expect.closeTo(18.86),
+                    "misalignment": 3,
+                    "degree_of_misalignment": expect.closeTo(0.6)
+                },
+                {
+                    "index": 8,
+                    "warping": 14,
+                    "distance": expect.closeTo(12.91),
+                    "misalignment": 6,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 9,
+                    "warping": 16,
+                    "distance": expect.closeTo(9.78),
+                    "misalignment": 7,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 10,
+                    "warping": 17,
+                    "distance": expect.closeTo(23.86),
+                    "misalignment": 7,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 11,
+                    "warping": 19,
+                    "distance": expect.closeTo(7.85),
+                    "misalignment": 8,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 12,
+                    "warping": 21,
+                    "distance": expect.closeTo(5.19),
+                    "misalignment": 9,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 13,
+                    "warping": 22,
+                    "distance": expect.closeTo(3.94),
+                    "misalignment": 9,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 14,
+                    "warping": 24,
+                    "distance": expect.closeTo(5.92),
+                    "misalignment": 10,
+                    "degree_of_misalignment": expect.closeTo(0.2)
+                },
+                {
+                    "index": 15,
+                    "warping": 26,
+                    "distance": expect.closeTo(14.66),
+                    "misalignment": 11,
+                    "degree_of_misalignment": expect.closeTo(0.8)
+                },
+                {
+                    "index": 16,
+                    "warping": 31,
+                    "distance": expect.closeTo(13.89),
+                    "misalignment": 15,
+                    "degree_of_misalignment": expect.closeTo(1)
+                },
+                {
+                    "index": 17,
+                    "warping": 37,
+                    "distance": expect.closeTo(13.76),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 18,
+                    "warping": 38,
+                    "distance": expect.closeTo(10.8),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                },
+                {
+                    "index": 19,
+                    "warping": 39,
+                    "distance": expect.closeTo(20.76),
+                    "misalignment": 20,
+                    "degree_of_misalignment": expect.closeTo(0)
+                }
+            ]
+        };
+        let result : AdaptedResult;
         
         beforeAll(() => {
             adapter.setReferenceTimestampColumn(0);
