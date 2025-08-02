@@ -183,8 +183,8 @@ describe("Time-Series Comparator tests", () => {
         let result : ComparisonResult;
         
         beforeAll(() => {
-            adapter.setReferenceTimestampColumn("Date");
-            adapter.setTargetTimestampColumn("Timestamp");
+            adapter.setReferenceTimestampColumn(1);
+            adapter.setTargetTimestampColumn(0);
             result = adapter.runComparison(reference, target)
         });
 
@@ -369,8 +369,8 @@ describe("Time-Series Comparator tests", () => {
         let result : ComparisonResult;
         
         beforeAll(() => {
-            adapter.setReferenceTimestampColumn("");
-            adapter.setTargetTimestampColumn("");
+            adapter.setReferenceTimestampColumn(-1);
+            adapter.setTargetTimestampColumn(-1);
             result = adapter.runComparison(reference, target)
         });
 
@@ -593,8 +593,8 @@ describe("Time-Series Comparator tests", () => {
         let result : ComparisonResult;
         
         beforeAll(() => {
-            adapter.setReferenceTimestampColumn("Date");
-            adapter.setTargetTimestampColumn("Timestamp");
+            adapter.setReferenceTimestampColumn(1);
+            adapter.setTargetTimestampColumn(3);
             result = adapter.runComparison(reference, target)
         });
 
@@ -602,5 +602,452 @@ describe("Time-Series Comparator tests", () => {
             expect(result).toEqual(expectedResult);
         });
         
+    });
+    describe("Valid input 2: Multivariate w/ timestamps at index 0", () => {
+
+        const referenceHeaders : Header[] = ["Date", "Var. 1", "Var. 2", "Var. 3"];
+        const referenceData : Row[] =   [['2025-07-16T00:00:00', '3.17', '12.87', '9.41'],
+                                        ['2025-07-09T00:00:00', '14.81', '1.33', '-2.54'],
+                                        ['2025-07-18T00:00:00', '11.64', '4.25', '-5.78'],
+                                        ['2025-07-10T00:00:00', '-1.89', '11.07', '6.12'],
+                                        ['2025-07-12T00:00:00', '5.86', '-7.01', '-12.43'],
+                                        ['2025-07-15T00:00:00', '6.91', '-1.23', '-4.67'],
+                                        ['2025-07-13T00:00:00', '2.77', '0.59', '13.26'],
+                                        ['2025-07-01T00:00:00', '13.27', '-6.14', '5.33'],
+                                        ['2025-07-19T00:00:00', '0.0', '-14.35', '7.65'],
+                                        ['2025-07-20T00:00:00', '-5.41', '9.88', '-13.34'],
+                                        ['2025-07-05T00:00:00', '-12.07', '5.7', '-3.28'],
+                                        ['2025-07-08T00:00:00', '-6.55', '3.27', '-9.91'],
+                                        ['2025-07-07T00:00:00', '0.49', '-8.31', '12.96'],
+                                        ['2025-07-14T00:00:00', '-9.03', '8.41', '1.17'],
+                                        ['2025-07-02T00:00:00', '-4.78', '10.19', '-11.82'],
+                                        ['2025-07-17T00:00:00', '-2.01', '-6.16', '0.33'],
+                                        ['2025-07-11T00:00:00', '-14.08', '-5.98', '7.71'],
+                                        ['2025-07-03T00:00:00', '1.76', '6.44', '8.28'],
+                                        ['2025-07-06T00:00:00', '7.66', '-10.4', '2.01'],
+                                        ['2025-07-04T00:00:00', '3.91', '-13.93', '-0.64']];
+        const reference : TableData = {headers: referenceHeaders, data: referenceData} as TableData;
+
+        const targetHeaders : Header[]= ["Date", "Column 1", "Column 2", "Column 3"];
+        const targetData : Row[]= [['2025-07-05T00:00:00', '3.62', '-1.21', '10.58'],
+                                    ['2025-07-28T00:00:00', '-11.43', '7.01', '-5.72'],
+                                    ['2025-08-06T00:00:00', '10.45', '-12.79', '7.58'],
+                                    ['2025-07-27T00:00:00', '13.04', '9.66', '-0.95'],
+                                    ['2025-08-01T00:00:00', '-12.6', '0.83', '5.98'],
+                                    ['2025-07-15T00:00:00', '9.99', '-7.75', '5.27'],
+                                    ['2025-07-18T00:00:00', '4.5', '-11.03', '-6.38'],
+                                    ['2025-08-05T00:00:00', '-5.94', '6.87', '0.24'],
+                                    ['2025-07-16T00:00:00', '1.2', '3.47', '-5.85'],
+                                    ['2025-07-12T00:00:00', '10.34', '14.29', '-12.36'],
+                                    ['2025-07-21T00:00:00', '-3.52', '12.18', '-6.44'],
+                                    ['2025-07-07T00:00:00', '-12.14', '13.02', '-2.64'],
+                                    ['2025-07-11T00:00:00', '-0.55', '-3.18', '6.77'],
+                                    ['2025-07-23T00:00:00', '-10.86', '4.92', '1.01'],
+                                    ['2025-08-03T00:00:00', '-14.28', '-3.36', '9.04'],
+                                    ['2025-08-04T00:00:00', '3.79', '-1.12', '6.69'],
+                                    ['2025-07-22T00:00:00', '7.11', '-2.05', "14.33"],
+                                    ['2025-07-19T00:00:00', '-13.74', '7.91', '2.69'],
+                                    ['2025-07-04T00:00:00', '-11.56', '2.49', '7.3'],
+                                    ['2025-07-17T00:00:00', '-9.22', '8.67', '12.14'],
+                                    ['2025-07-03T00:00:00', '0.14', '6.25', '-13.72'],
+                                    ['2025-08-02T00:00:00', '4.72', '2.03', '-11.53'],
+                                    ['2025-07-24T00:00:00', '0.39', '-13.27', '11.76'],
+                                    ['2025-07-30T00:00:00', '-0.97', '10.26', '-14.3'],
+                                    ['2025-07-31T00:00:00', '1.65', '-9.89', '3.27'],
+                                    ['2025-07-08T00:00:00', '7.55', '-9.88', '11.21'],
+                                    ['2025-07-10T00:00:00', '2.88', '0.42', '-7.9'],
+                                    ['2025-07-29T00:00:00', '8.88', '-6.14', '12.77'],
+                                    ['2025-07-20T00:00:00', '6.23', '0.0', '-8.91'],
+                                    ['2025-08-07T00:00:00', '2.33', '13.91', '-8.82'],
+                                    ['2025-07-09T00:00:00', '-5.93', '4.76', '-10.01'],
+                                    ['2025-08-08T00:00:00', '-6.18', '-7.61', '1.9'],
+                                    ['2025-07-01T00:00:00', '-8.92', '12.34', '-3.76'],
+                                    ['2025-07-02T00:00:00', '5.21', '-14.88', '9.63'],
+                                    ['2025-07-25T00:00:00', '6.55', '3.84', '-1.63'],
+                                    ['2025-07-26T00:00:00', '-7.72', '-4.28', '2.93'],
+                                    ['2025-07-14T00:00:00', '8.91', '-1.7', '1.08'],
+                                    ['2025-07-06T00:00:00', '14.93', '-6.77', '4.05'],
+                                    ['2025-07-13T00:00:00', '-6.12', '-4.04', '3.15'],
+                                    ['2025-08-09T00:00:00', '9.27', '0.0', '-2.49']];                
+        const target : TableData = {headers: targetHeaders,data: targetData} as TableData;
+
+        
+        const expectedResult = [
+            {
+                "index": 0,
+                "warping": 0,
+                "distance": expect.closeTo(30.27),
+                "misalignment": 0,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 1,
+                "warping": 2,
+                "distance": expect.closeTo(6.58),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 2,
+                "warping": 3,
+                "distance": expect.closeTo(13.93),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 3,
+                "warping": 5,
+                "distance": expect.closeTo(13.95),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 4,
+                "warping": 6,
+                "distance": expect.closeTo(7.35),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 5,
+                "warping": 7,
+                "distance": expect.closeTo(9.22),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(-1)
+            },
+            {
+                "index": 6,
+                "warping": 7,
+                "distance": expect.closeTo(7.44),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0.4)
+            },
+            {
+                "index": 7,
+                "warping": 10,
+                "distance": expect.closeTo(18.86),
+                "misalignment": 3,
+                "degree_of_misalignment": expect.closeTo(0.6)
+            },
+            {
+                "index": 8,
+                "warping": 14,
+                "distance": expect.closeTo(12.91),
+                "misalignment": 6,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 9,
+                "warping": 16,
+                "distance": expect.closeTo(9.78),
+                "misalignment": 7,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 10,
+                "warping": 17,
+                "distance": expect.closeTo(23.86),
+                "misalignment": 7,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 11,
+                "warping": 19,
+                "distance": expect.closeTo(7.85),
+                "misalignment": 8,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 12,
+                "warping": 21,
+                "distance": expect.closeTo(5.19),
+                "misalignment": 9,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 13,
+                "warping": 22,
+                "distance": expect.closeTo(3.94),
+                "misalignment": 9,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 14,
+                "warping": 24,
+                "distance": expect.closeTo(5.92),
+                "misalignment": 10,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 15,
+                "warping": 26,
+                "distance": expect.closeTo(14.66),
+                "misalignment": 11,
+                "degree_of_misalignment": expect.closeTo(0.8)
+            },
+            {
+                "index": 16,
+                "warping": 31,
+                "distance": expect.closeTo(13.89),
+                "misalignment": 15,
+                "degree_of_misalignment": expect.closeTo(1)
+            },
+            {
+                "index": 17,
+                "warping": 37,
+                "distance": expect.closeTo(13.76),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 18,
+                "warping": 38,
+                "distance": expect.closeTo(10.8),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 19,
+                "warping": 39,
+                "distance": expect.closeTo(20.76),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            }
+        ];
+        let result : ComparisonResult;
+        
+        beforeAll(() => {
+            adapter.setReferenceTimestampColumn(0);
+            adapter.setTargetTimestampColumn(0);
+            result = adapter.runComparison(reference, target)
+        });
+
+        test("Check result", () => {
+            expect(result).toEqual(expectedResult);
+        });
+        
+    });
+    describe("Valid input 2: Multivariate w/ timestamps at index 0 with YYYY-MM-DD format", () => {
+
+        const referenceHeaders : Header[] = ["Date", "Var. 1", "Var. 2", "Var. 3"];
+        const referenceData : Row[] =   [['2025-07-16', '3.17', '12.87', '9.41'],
+                                        ['2025-07-09', '14.81', '1.33', '-2.54'],
+                                        ['2025-07-18', '11.64', '4.25', '-5.78'],
+                                        ['2025-07-10', '-1.89', '11.07', '6.12'],
+                                        ['2025-07-12', '5.86', '-7.01', '-12.43'],
+                                        ['2025-07-15', '6.91', '-1.23', '-4.67'],
+                                        ['2025-07-13', '2.77', '0.59', '13.26'],
+                                        ['2025-07-01', '13.27', '-6.14', '5.33'],
+                                        ['2025-07-19', '0.0', '-14.35', '7.65'],
+                                        ['2025-07-20', '-5.41', '9.88', '-13.34'],
+                                        ['2025-07-05', '-12.07', '5.7', '-3.28'],
+                                        ['2025-07-08', '-6.55', '3.27', '-9.91'],
+                                        ['2025-07-07', '0.49', '-8.31', '12.96'],
+                                        ['2025-07-14', '-9.03', '8.41', '1.17'],
+                                        ['2025-07-02', '-4.78', '10.19', '-11.82'],
+                                        ['2025-07-17', '-2.01', '-6.16', '0.33'],
+                                        ['2025-07-11', '-14.08', '-5.98', '7.71'],
+                                        ['2025-07-03', '1.76', '6.44', '8.28'],
+                                        ['2025-07-06', '7.66', '-10.4', '2.01'],
+                                        ['2025-07-04', '3.91', '-13.93', '-0.64']];
+        const reference : TableData = {headers: referenceHeaders, data: referenceData} as TableData;
+
+        const targetHeaders : Header[]= ["Date", "Column 1", "Column 2", "Column 3"];
+        const targetData : Row[]= [['2025-07-05', '3.62', '-1.21', '10.58'],
+                                    ['2025-07-28', '-11.43', '7.01', '-5.72'],
+                                    ['2025-08-06', '10.45', '-12.79', '7.58'],
+                                    ['2025-07-27', '13.04', '9.66', '-0.95'],
+                                    ['2025-08-01', '-12.6', '0.83', '5.98'],
+                                    ['2025-07-15', '9.99', '-7.75', '5.27'],
+                                    ['2025-07-18', '4.5', '-11.03', '-6.38'],
+                                    ['2025-08-05', '-5.94', '6.87', '0.24'],
+                                    ['2025-07-16', '1.2', '3.47', '-5.85'],
+                                    ['2025-07-12', '10.34', '14.29', '-12.36'],
+                                    ['2025-07-21', '-3.52', '12.18', '-6.44'],
+                                    ['2025-07-07', '-12.14', '13.02', '-2.64'],
+                                    ['2025-07-11', '-0.55', '-3.18', '6.77'],
+                                    ['2025-07-23', '-10.86', '4.92', '1.01'],
+                                    ['2025-08-03', '-14.28', '-3.36', '9.04'],
+                                    ['2025-08-04', '3.79', '-1.12', '6.69'],
+                                    ['2025-07-22', '7.11', '-2.05', "14.33"],
+                                    ['2025-07-19', '-13.74', '7.91', '2.69'],
+                                    ['2025-07-04', '-11.56', '2.49', '7.3'],
+                                    ['2025-07-17', '-9.22', '8.67', '12.14'],
+                                    ['2025-07-03', '0.14', '6.25', '-13.72'],
+                                    ['2025-08-02', '4.72', '2.03', '-11.53'],
+                                    ['2025-07-24', '0.39', '-13.27', '11.76'],
+                                    ['2025-07-30', '-0.97', '10.26', '-14.3'],
+                                    ['2025-07-31', '1.65', '-9.89', '3.27'],
+                                    ['2025-07-08', '7.55', '-9.88', '11.21'],
+                                    ['2025-07-10', '2.88', '0.42', '-7.9'],
+                                    ['2025-07-29', '8.88', '-6.14', '12.77'],
+                                    ['2025-07-20', '6.23', '0.0', '-8.91'],
+                                    ['2025-08-07', '2.33', '13.91', '-8.82'],
+                                    ['2025-07-09', '-5.93', '4.76', '-10.01'],
+                                    ['2025-08-08', '-6.18', '-7.61', '1.9'],
+                                    ['2025-07-01', '-8.92', '12.34', '-3.76'],
+                                    ['2025-07-02', '5.21', '-14.88', '9.63'],
+                                    ['2025-07-25', '6.55', '3.84', '-1.63'],
+                                    ['2025-07-26', '-7.72', '-4.28', '2.93'],
+                                    ['2025-07-14', '8.91', '-1.7', '1.08'],
+                                    ['2025-07-06', '14.93', '-6.77', '4.05'],
+                                    ['2025-07-13', '-6.12', '-4.04', '3.15'],
+                                    ['2025-08-09', '9.27', '0.0', '-2.49']];                
+        const target : TableData = {headers: targetHeaders,data: targetData} as TableData;
+
+        
+        const expectedResult = [
+            {
+                "index": 0,
+                "warping": 0,
+                "distance": expect.closeTo(30.27),
+                "misalignment": 0,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 1,
+                "warping": 2,
+                "distance": expect.closeTo(6.58),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 2,
+                "warping": 3,
+                "distance": expect.closeTo(13.93),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 3,
+                "warping": 5,
+                "distance": expect.closeTo(13.95),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 4,
+                "warping": 6,
+                "distance": expect.closeTo(7.35),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 5,
+                "warping": 7,
+                "distance": expect.closeTo(9.22),
+                "misalignment": 2,
+                "degree_of_misalignment": expect.closeTo(-1)
+            },
+            {
+                "index": 6,
+                "warping": 7,
+                "distance": expect.closeTo(7.44),
+                "misalignment": 1,
+                "degree_of_misalignment": expect.closeTo(0.4)
+            },
+            {
+                "index": 7,
+                "warping": 10,
+                "distance": expect.closeTo(18.86),
+                "misalignment": 3,
+                "degree_of_misalignment": expect.closeTo(0.6)
+            },
+            {
+                "index": 8,
+                "warping": 14,
+                "distance": expect.closeTo(12.91),
+                "misalignment": 6,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 9,
+                "warping": 16,
+                "distance": expect.closeTo(9.78),
+                "misalignment": 7,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 10,
+                "warping": 17,
+                "distance": expect.closeTo(23.86),
+                "misalignment": 7,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 11,
+                "warping": 19,
+                "distance": expect.closeTo(7.85),
+                "misalignment": 8,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 12,
+                "warping": 21,
+                "distance": expect.closeTo(5.19),
+                "misalignment": 9,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 13,
+                "warping": 22,
+                "distance": expect.closeTo(3.94),
+                "misalignment": 9,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 14,
+                "warping": 24,
+                "distance": expect.closeTo(5.92),
+                "misalignment": 10,
+                "degree_of_misalignment": expect.closeTo(0.2)
+            },
+            {
+                "index": 15,
+                "warping": 26,
+                "distance": expect.closeTo(14.66),
+                "misalignment": 11,
+                "degree_of_misalignment": expect.closeTo(0.8)
+            },
+            {
+                "index": 16,
+                "warping": 31,
+                "distance": expect.closeTo(13.89),
+                "misalignment": 15,
+                "degree_of_misalignment": expect.closeTo(1)
+            },
+            {
+                "index": 17,
+                "warping": 37,
+                "distance": expect.closeTo(13.76),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 18,
+                "warping": 38,
+                "distance": expect.closeTo(10.8),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            },
+            {
+                "index": 19,
+                "warping": 39,
+                "distance": expect.closeTo(20.76),
+                "misalignment": 20,
+                "degree_of_misalignment": expect.closeTo(0)
+            }
+        ];
+        let result : ComparisonResult;
+        
+        beforeAll(() => {
+            adapter.setReferenceTimestampColumn(0);
+            adapter.setTargetTimestampColumn(0);
+            result = adapter.runComparison(reference, target)
+        });
+
+        test("Check result", () => {
+            expect(result).toEqual(expectedResult);
+        })
     });
 });
