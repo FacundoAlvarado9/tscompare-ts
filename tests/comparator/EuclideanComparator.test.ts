@@ -1,9 +1,8 @@
-import { TSComparator, UnweightedEuclidean, TimeSeries, ComparisonResult } from "../../src";
+import { TimeSeries, ComparisonResult, EuclideanComparator } from "../../src";
 
 describe("Time-Series Comparator tests", () => {
 
-    const comparator = new TSComparator();
-    comparator.setStrategy(new UnweightedEuclidean());
+    const comparator = new EuclideanComparator();
 
     describe("Invalid inputs ", () => {
 
@@ -12,12 +11,12 @@ describe("Time-Series Comparator tests", () => {
         const dimensionallyInconsistentTS : TimeSeries = [[1,-2,0], [25,54,4.5], [-8.2], [122,1]];
 
         test("Comparison is not possible for empty time-series", () =>{
-            expect(() => comparator.runComparison(emptyTS, emptyTS)).toThrow();
-            expect(() => comparator.runComparison(emptyTS, validTS)).toThrow();
+            expect(() => comparator.compare(emptyTS, emptyTS)).toThrow();
+            expect(() => comparator.compare(emptyTS, validTS)).toThrow();
         });
 
         test("Comparison is not possible for dimensionally inconsistent time-series", () => {
-            expect(() => comparator.runComparison(dimensionallyInconsistentTS, validTS)).toThrow();
+            expect(() => comparator.compare(dimensionallyInconsistentTS, validTS)).toThrow();
         });
     });
 
@@ -82,7 +81,7 @@ describe("Time-Series Comparator tests", () => {
         let result : ComparisonResult;
         
         beforeAll(() => {
-            result = comparator.runComparison(reference, target)
+            result = comparator.compare(reference, target)
         });
 
         test("Check result", () => {
@@ -261,7 +260,7 @@ describe("Time-Series Comparator tests", () => {
         
         let result : ComparisonResult;
         beforeAll(() => {
-            result = comparator.runComparison(reference, target)
+            result = comparator.compare(reference, target)
         });
 
         test("Check result", () => {
@@ -270,16 +269,3 @@ describe("Time-Series Comparator tests", () => {
         
     });
 });
-
-/*
-let expectedResult = [];
-        for(let i=0; i<reference.length; i++){
-            expectedResult.push({
-                index: i,
-                warping: expectedWarping[i],
-                distance: expectedDistance[i],
-                misalignment: expectedMisalignment[i],
-                degree_of_misalignment: expectedDegreeOfMisalignment[i]
-            });
-        };
-        console.log(expectedResult);*/

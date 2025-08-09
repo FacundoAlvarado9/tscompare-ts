@@ -1,10 +1,9 @@
-import { TSComparator, UnweightedEuclidean, TimeSeries, AdaptedResult, TableData, Row, Header, TableDataComparator } from "../../src";
+import { TimeSeries, AdaptedResult, TableData, Row, Header, EuclideanComparator, TableDataComparator } from "../../src";
 
 describe("Time-Series Comparator tests", () => {
 
-    const comparator = new TSComparator();
+    const comparator = new EuclideanComparator();
     const adapter = new TableDataComparator(comparator);
-    adapter.setStrategy(new UnweightedEuclidean());
 
     describe("Invalid inputs: Empty tables ", () => {
 
