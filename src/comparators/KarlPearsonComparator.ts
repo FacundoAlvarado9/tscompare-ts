@@ -1,7 +1,6 @@
 import { AbstractTSComparator } from "../TSComparator";
 import { TimeSeries, ComparisonResult, NDimensionalPoint } from "../types/TSComparator.types";
 import { StdDevHelper } from "../utils/StdDevHelper";
-import { TSValidator } from "../validators/TSValidator";
 
 export class KarlPearsonComparator extends AbstractTSComparator{
 
@@ -11,10 +10,9 @@ export class KarlPearsonComparator extends AbstractTSComparator{
         super();
     }
 
-    public compare(reference: TimeSeries, target: TimeSeries): ComparisonResult {
-        TSValidator.validate(reference, target);
-        this.computeWeights(reference, target);
-        return this.runComparison(reference, target);
+    protected performComparison(reference: TimeSeries, target: TimeSeries): ComparisonResult {
+        this.computeWeights(reference, target);        
+        return super.performComparison(reference, target);
     }
 
     protected distance(point1: NDimensionalPoint, point2: NDimensionalPoint): number {

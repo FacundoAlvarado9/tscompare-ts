@@ -1,16 +1,10 @@
 import { AbstractTSComparator } from "../TSComparator";
 import { ComparisonResult, NDimensionalPoint, TimeSeries } from "../types/TSComparator.types";
-import { TSValidator } from "../validators/TSValidator";
 
 export class EuclideanComparator extends AbstractTSComparator{
 
     constructor(){
         super();
-    }
-
-    compare(reference: TimeSeries, target: TimeSeries): ComparisonResult {
-        TSValidator.validate(reference, target);
-        return this.runComparison(reference, target);
     }
 
     protected distance(point1: NDimensionalPoint, point2: NDimensionalPoint): number {

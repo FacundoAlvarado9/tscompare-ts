@@ -4,7 +4,6 @@ import { TSValidator } from './validators/TSValidator';
 import { Matrix } from './types/matrix/Matrix';
 
 export interface TSComparator {
-    //setStrategy(distanceStrategy : DistanceStrategy) : void;
     compare(reference : TimeSeries, target : TimeSeries) : ComparisonResult;
 }
 
@@ -12,13 +11,14 @@ export abstract class AbstractTSComparator implements TSComparator {
 
     constructor(){}
 
-    abstract compare(reference: TimeSeries, target: TimeSeries): ComparisonResult;
+    public compare(reference: TimeSeries, target: TimeSeries): ComparisonResult{
+        TSValidator.validate(reference, target);
+        return this.performComparison(reference, target);
+    }
 
     protected abstract distance(point1 : NDimensionalPoint, point2 : NDimensionalPoint) : number;
 
-    protected runComparison(reference : TimeSeries, target : TimeSeries) : ComparisonResult {
-
-        TSValidator.validate(reference, target);
+    protected performComparison(reference : TimeSeries, target : TimeSeries) : ComparisonResult {        
 
         const accDistMatrix = this.calculateDistanceMatrix(reference, target);
         const minDistPath = this.calculateMinimalDistPath(accDistMatrix);
@@ -41,6 +41,7 @@ export abstract class AbstractTSComparator implements TSComparator {
 
         return result;
     }
+
     /**
      * Calculates the accumulated distance matrix for two time series.
      * @param {TimeSeries} reference - the reference time-series
@@ -152,30 +153,33 @@ export abstract class AbstractTSComparator implements TSComparator {
      * @returns an array containing the degree of misalignment of each record in the reference time-series
      */
     private calculateMisalignmentDegree(misalignment : Array<number>) : Array<number>{
-        let dG = Array<number>(misalignment.length);        
-        let h = Array<number>(misalignment.length);
+        let misalignmentDiscreteDerivative = Array<number>(misalignment.length);        
+        let misalignmentDegree = Array<number>(misalignment.length);
         if(misalignment.length == 1){
-            dG[0] = 1;
-            h[0] = 0;
+            misalignmentDegree[0] = 0;
         } else{
-            for(let i=0; i<misalignment.length-1; i++){
-                dG[i] = misalignment[i+1] - misalignment[i];
-            }
-            dG[misalignment.length-1] = dG[misalignment.length-2];
-            let max_dG = max(dG);
-            let min_dG = min(dG);
-
-            for(let i=0; i<dG.length; i++){
-                if(dG[i] > 0){
-                    h[i] = dG[i]/max_dG;
-                } else if(dG[i] < 0){
-                    h[i] = dG[i]/abs(min_dG);
+            misalignment.forEach((value, index) => {
+                if(index != misalignment.length-1){
+                    misalignmentDiscreteDerivative[index] = misalignment[index+1] - misalignment[index];
                 } else {
-                    h[i] = 0;
+                    misalignmentDiscreteDerivative[index] = misalignmentDiscreteDerivative[index-1];
+                }                
+            });
+            
+            let max_dG = max(misalignmentDiscreteDerivative);
+            let min_dG = min(misalignmentDiscreteDerivative);
+
+            misalignmentDiscreteDerivative.forEach((dg, index) => {
+                if(dg > 0){
+                    misalignmentDegree[index] = dg/max_dG;
+                } else if(dg < 0){
+                    misalignmentDegree[index] = dg/abs(min_dG);
+                } else {
+                    misalignmentDegree[index] = 0;
                 }
-            }
+            });
         }
-        return h;
+        return misalignmentDegree;
     }
 
     /**
@@ -186,11 +190,10 @@ export abstract class AbstractTSComparator implements TSComparator {
      * @returns an array containing the distance between each record in the reference-time series to its best-match in the target time-series
      */
     private calculateDistance(reference : TimeSeries, target : TimeSeries, warping : Array<number>) : Array<number> {
-        let dist = Array<number>(reference.length);
-        for(let n=0; n<reference.length; n++){
-            const bestMatch = warping[n];
-            dist[n] = this.distance(reference[n], target[bestMatch])
-        }
+        const dist = reference.map((_point, index) => {
+            const bestMatch = warping[index];
+            return this.distance(reference[index], target[bestMatch])
+        });
         return dist;
     }
 }
