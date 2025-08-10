@@ -21,7 +21,7 @@ export class WelfordAlgorithmHelper {
         return {m: m,s: s,k: k} as WelfordVariables;
     }
 
-    public static finalize({m,s,k} : WelfordVariables) : Array<number> {
+    public static finalize({s,k} : WelfordVariables) : Array<number> {
         return s.map((s_value) => (Math.sqrt(s_value/k)));
     }
 }
