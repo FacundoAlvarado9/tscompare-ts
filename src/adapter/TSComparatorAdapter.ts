@@ -4,7 +4,7 @@ import { TSComparator } from "../TSComparator";
 import { NDimensionalPoint, TimeSeries } from "../types/TSComparator.types";
 
 export interface ITableDataComparator {
-    runComparison(reference : TableData, target : TableData) : AdaptedResult;
+    compare(reference : TableData, target : TableData) : AdaptedResult;
 }
 
 export class TableDataComparator implements ITableDataComparator {
@@ -35,7 +35,7 @@ export class TableDataComparator implements ITableDataComparator {
         this.targetTimestampCol = columnIndex;
     }
 
-    runComparison(reference: TableData, target: TableData): AdaptedResult {
+    compare(reference: TableData, target: TableData): AdaptedResult {
         let adaptedResult : AdaptedResult;
         try {
             const referenceTS : TimeSeries = this.convertToTimeSeries(reference, this.refTimestampCol);

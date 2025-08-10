@@ -24,8 +24,8 @@ describe("Time-Series Comparator tests", () => {
         }
 
         test("Comparison is not possible for empty tables", () =>{
-            expect(adapter.runComparison(emptyTable, validTable)).toEqual(expectedResult);
-            expect(adapter.runComparison(validTable, emptyTable)).toEqual(expectedResult);
+            expect(adapter.compare(emptyTable, validTable)).toEqual(expectedResult);
+            expect(adapter.compare(validTable, emptyTable)).toEqual(expectedResult);
         });            
     });
 
@@ -54,7 +54,7 @@ describe("Time-Series Comparator tests", () => {
         }        
 
         test("Comparison is not possible for dimensionally inconsistent time-series", () => {
-            expect(adapter.runComparison(dimensionallyInconsistentTable, validTable)).toEqual(expectedResult);
+            expect(adapter.compare(dimensionallyInconsistentTable, validTable)).toEqual(expectedResult);
         });
 
     });
@@ -75,7 +75,7 @@ describe("Time-Series Comparator tests", () => {
         let result : AdaptedResult;
         
         beforeAll(() => {
-            result = adapter.runComparison(reference, target)
+            result = adapter.compare(reference, target)
         });
 
         test("Check result", () => {
@@ -150,7 +150,7 @@ describe("Time-Series Comparator tests", () => {
         let result : AdaptedResult;
         
         beforeAll(() => {
-            result = adapter.runComparison(reference, target)
+            result = adapter.compare(reference, target)
         });
 
         test("Check result", () => {
@@ -238,7 +238,7 @@ describe("Time-Series Comparator tests", () => {
         beforeAll(() => {
             adapter.setReferenceTimestampColumn(1);
             adapter.setTargetTimestampColumn(0);
-            result = adapter.runComparison(reference, target)
+            result = adapter.compare(reference, target)
         });
 
         test("Check result", () => {
@@ -427,7 +427,7 @@ describe("Time-Series Comparator tests", () => {
         beforeAll(() => {
             adapter.setReferenceTimestampColumn(-1);
             adapter.setTargetTimestampColumn(-1);
-            result = adapter.runComparison(reference, target)
+            result = adapter.compare(reference, target)
         });
 
         test("Check result", () => {
@@ -654,7 +654,7 @@ describe("Time-Series Comparator tests", () => {
         beforeAll(() => {
             adapter.setReferenceTimestampColumn(1);
             adapter.setTargetTimestampColumn(3);
-            result = adapter.runComparison(reference, target)
+            result = adapter.compare(reference, target)
         });
 
         test("Check result", () => {
@@ -881,7 +881,7 @@ describe("Time-Series Comparator tests", () => {
         beforeAll(() => {
             adapter.setReferenceTimestampColumn(0);
             adapter.setTargetTimestampColumn(0);
-            result = adapter.runComparison(reference, target)
+            result = adapter.compare(reference, target)
         });
 
         test("Check result", () => {
@@ -1108,7 +1108,7 @@ describe("Time-Series Comparator tests", () => {
         beforeAll(() => {
             adapter.setReferenceTimestampColumn(0);
             adapter.setTargetTimestampColumn(0);
-            result = adapter.runComparison(reference, target)
+            result = adapter.compare(reference, target)
         });
 
         test("Check result", () => {
