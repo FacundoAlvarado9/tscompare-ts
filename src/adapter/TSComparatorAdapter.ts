@@ -10,36 +10,36 @@ export interface ITableDataComparator {
 export class TableDataComparator implements ITableDataComparator {
 
     private adaptee : TSComparator;
-    private refTimestampCol!: number;
-    private targetTimestampCol!: number;
+    private refTimestampColumnIndex!: number;
+    private targetTimestampColumnIndex!: number;
 
-    constructor(adaptee : TSComparator, referenceTimestampCol? : number, targetTimestampCol? : number){
+    constructor(adaptee : TSComparator, referenceTimestampCol? : number, targetTimestampColumnIndex? : number){
         if(referenceTimestampCol){
-            this.refTimestampCol = referenceTimestampCol;
+            this.refTimestampColumnIndex = referenceTimestampCol;
         } else {
-            this.refTimestampCol = -1;
+            this.refTimestampColumnIndex = -1;
         }
-        if(targetTimestampCol){
-            this.targetTimestampCol = targetTimestampCol;
+        if(targetTimestampColumnIndex){
+            this.targetTimestampColumnIndex = targetTimestampColumnIndex;
         } else {
-            this.refTimestampCol = -1;
+            this.refTimestampColumnIndex = -1;
         }
         this.adaptee = adaptee;
     }
 
-    public setReferenceTimestampColumn(columnIndex : number) : void{
-        this.refTimestampCol = columnIndex;
+    public setReferenceTimestampColumnIndex(columnIndex : number) : void{
+        this.refTimestampColumnIndex = columnIndex;
     }
 
-    public setTargetTimestampColumn(columnIndex : number) : void{
-        this.targetTimestampCol = columnIndex;
+    public setTargetTimestampColumnIndex(columnIndex : number) : void{
+        this.targetTimestampColumnIndex = columnIndex;
     }
 
     compare(reference: TableData, target: TableData): AdaptedResult {
         let adaptedResult : AdaptedResult;
         try {
-            const referenceTS : TimeSeries = this.convertToTimeSeries(reference, this.refTimestampCol);
-            const targetTS : TimeSeries = this.convertToTimeSeries(target, this.targetTimestampCol);            
+            const referenceTS : TimeSeries = this.convertToTimeSeries(reference, this.refTimestampColumnIndex);
+            const targetTS : TimeSeries = this.convertToTimeSeries(target, this.targetTimestampColumnIndex);            
             adaptedResult = {status: "Success", result: this.adaptee.compare(referenceTS, targetTS)}
         } catch (error) {
             let message;
@@ -61,7 +61,7 @@ export class TableDataComparator implements ITableDataComparator {
         } else {
             tableToConvert = tableData;
         }
-        return this.getTimeSeries(tableToConvert, timestampColumn);
+        return this.parseIntoTimeSeries(tableToConvert, timestampColumn);
     }
 
     private orderTimestampedData(table : TableData, timestampColumn : number) : TableData {
@@ -85,7 +85,7 @@ export class TableDataComparator implements ITableDataComparator {
         return { headers: table.headers, data: newRows } as TableData;
     }
 
-    private getTimeSeries(table : TableData, timestampColumn : number) : TimeSeries {
+    private parseIntoTimeSeries(table : TableData, timestampColumn : number) : TimeSeries {
         const ts : TimeSeries = [];
         table.data.forEach((row, rowIndex) => {
             const point : NDimensionalPoint = [];

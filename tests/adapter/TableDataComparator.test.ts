@@ -236,8 +236,8 @@ describe("Time-Series Comparator tests", () => {
         let result : AdaptedResult;
         
         beforeAll(() => {
-            adapter.setReferenceTimestampColumn(1);
-            adapter.setTargetTimestampColumn(0);
+            adapter.setReferenceTimestampColumnIndex(1);
+            adapter.setTargetTimestampColumnIndex(0);
             result = adapter.compare(reference, target)
         });
 
@@ -425,8 +425,8 @@ describe("Time-Series Comparator tests", () => {
         let result : AdaptedResult;
         
         beforeAll(() => {
-            adapter.setReferenceTimestampColumn(-1);
-            adapter.setTargetTimestampColumn(-1);
+            adapter.setReferenceTimestampColumnIndex(-1);
+            adapter.setTargetTimestampColumnIndex(-1);
             result = adapter.compare(reference, target)
         });
 
@@ -652,8 +652,8 @@ describe("Time-Series Comparator tests", () => {
         let result : AdaptedResult;
         
         beforeAll(() => {
-            adapter.setReferenceTimestampColumn(1);
-            adapter.setTargetTimestampColumn(3);
+            adapter.setReferenceTimestampColumnIndex(1);
+            adapter.setTargetTimestampColumnIndex(3);
             result = adapter.compare(reference, target)
         });
 
@@ -879,8 +879,8 @@ describe("Time-Series Comparator tests", () => {
         let result : AdaptedResult;
         
         beforeAll(() => {
-            adapter.setReferenceTimestampColumn(0);
-            adapter.setTargetTimestampColumn(0);
+            adapter.setReferenceTimestampColumnIndex(0);
+            adapter.setTargetTimestampColumnIndex(0);
             result = adapter.compare(reference, target)
         });
 
@@ -1106,8 +1106,8 @@ describe("Time-Series Comparator tests", () => {
         let result : AdaptedResult;
         
         beforeAll(() => {
-            adapter.setReferenceTimestampColumn(0);
-            adapter.setTargetTimestampColumn(0);
+            adapter.setReferenceTimestampColumnIndex(0);
+            adapter.setTargetTimestampColumnIndex(0);
             result = adapter.compare(reference, target)
         });
 
