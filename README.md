@@ -24,11 +24,11 @@ npx jest 'stddev.test.ts'
 ## Class Diagram
 A UML Class Diagram for the current state of development follows this explanation for ease of understanding
 
-![UML CLass Diagram](./img/UML_TSCompare_08aug.jpg)
+![UML CLass Diagram](./img/UML_TSCompare_10aug.jpg)
 
 And for the types
 
-![UML CLass Diagram - Types](./img/UML_Types_08aug.jpg)
+![UML CLass Diagram - Types](./img/UML_Types_10aug.jpg)
 
 ## Sources
 Urribarri, K., Larrea, M. (2022) A visualization technique to assist in the comparison of large meteorological datasets. _Computers & Graphics, Volume 104_, pages 1-10. https://doi.org/10.1016/j.cag.2022.02.011 
